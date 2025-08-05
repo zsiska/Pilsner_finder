@@ -1,0 +1,26 @@
+{
+  "name": "Pilsner Urquell Finder",
+  "short_name": "PU Finder",
+  "description": "Najděte nejlepší piva ve vašem okolí",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#15803d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "navigation"],
+  "lang": "cs-CZ"
+}

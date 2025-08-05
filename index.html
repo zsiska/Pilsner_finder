@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pilsner Urquell Finder</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        // Display results
+        function displayResults(results, selectedBeer, radius) {
+            const resultsContainer = document.getElementById('results');
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-text">
+                            Nenalezeny žádné podniky s pivem ${selectedBeer} v okolí ${radius} km.
+                        </div>
+                        <div class="no-results-hint">
+                            Zkuste zvětšit okolí nebo změnit místo.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="results">
+                    <h2 class="results-title">
+                        Nalezeno ${results.length} podniků s pivem ${selectedBeer} v okolí ${radius} km
+                    </h2>
+            `;
+            
+            results.forEach(venue => {
+                const stars = '★'.repeat(Math.floor(venue.rating)) + '☆'.repeat(5 - Math.floor(venue.rating));
+                
+                html += `
+                    <div class="venue-card">
+                        <div class="venue-header">
+                            <div class="venue-info">
+                                <h3 class="venue-name">${venue.name}</h3>
+                                <div class="venue-address">
+                                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    ${venue.address}
+                                </div>
+                            </div>
+                            <div class="venue-stats">
+                                <div class="distance-badge">${venue.distance.toFixed(1)} km</div>
+                                <div class="rating">${stars} ${venue.rating}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="venue-details">
+                            <div class="detail-item">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                ${venue.hours}
+                            </div>
+                            <div class="detail-item">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                                <a href="tel:${venue.phone}">${venue.phone}</a>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <span style="font-size: 14px; font-weight: 600; color: #15803d; margin-right: 8px;">Typ:</span>
+                            <span class="type-badge">${venue.type}</span>
+                        </div>
+                        
+                        <div class="beers-section">
+                            <div class="beers-label">Dostupné piva:</div>
+                            <div class="beers-list">
+                                ${venue.beers.map(beer => `
+                                    <span class="beer-badge ${beer === selectedBeer ? 'active' : ''}">
+                                        ${beer}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="action-btn map-btn" onclick="showOnMap(${JSON.stringify(venue).replace(/"/g, '&quot;')})">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+                                </svg>
+                                Zobrazit na mapě
+                            </button>
+                            <button class="action-btn navigate-btn" onclick="openNavigation(${venue.lat}, ${venue.lng}, '${venue.name}')">
+                                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 11.88a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
+                                </svg>
+                                Navigovat
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+
+        // Show venue on map
+        function showOnMap(venue) {
+            currentVenue = venue;
+            document.getElementById('modalTitle').textContent = venue.name;
+            document.getElementById('mapModal').classList.add('active');
+            
+            // Initialize map if not already done
+            setTimeout(() => {
+                initMap();
+                
+                // Set view to venue location
+                map.setView([venue.lat, venue.lng], 15);
+                
+                // Remove existing markers
+                if (venueMarker) map.removeLayer(venueMarker);
+                if (userMarker) map.removeLayer(userMarker);
+                
+                // Add venue marker
+                venueMarker = L.marker([venue.lat, venue.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>${venue.name}</b><br>${venue.address}`)
+                    .openPopup();
+                
+                // Add user marker if available
+                if (userPosition) {
+                    userMarker = L.marker([userPosition.lat, userPosition.lng], {
+                        icon: L.divIcon({
+                            html: '<div style="background: #2563eb; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                            iconSize: [16, 16],
+                            className: 'user-marker'
+                        })
+                    }).addTo(map).bindPopup('Vaše poloha');
+                }
+                
+                map.invalidateSize();
+            }, 100);
+        }
+
+        // Navigate to venue
+        function openNavigation(lat, lng, name) {
+            const encodedName = encodeURIComponent(name);
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodedName}`;
+            window.open(url, '_blank');
+        }
+
+        // Navigate from modal
+        function navigateToVenue() {
+            if (currentVenue) {
+                openNavigation(currentVenue.lat, currentVenue.lng, currentVenue.name);
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('mapModal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('mapModal').addEventListener('click', (e) => {
+            if (e.target.id === 'mapModal') {
+                closeModal();
+            }
+        });
+
+        // Enter key handler
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !document.querySelector('.search-btn').disabled) {
+                searchVenues();
+            }
+        });
+
+        // Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {
+                    console.log('Service Worker registration failed');
+                });
+            });
+        }
+    </script>
+</body>
+</html>
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom right, #f0fdf4, #d1fae5);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(to right, #15803d, #16a34a);
+            color: white;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1024px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #15803d;
+            font-size: 18px;
+        }
+
+        .header-text h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .header-text p {
+            font-size: 14px;
+            color: #bbf7d0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Search Form */
+        .search-form {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #86efac;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .label {
+            display: block;
+            color: #15803d;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .location-group {
+            display: flex;
+            gap: 0;
+        }
+
+        .location-input {
+            flex: 1;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .location-btn {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .location-btn:hover {
+            background: #15803d;
+        }
+
+        .location-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        select.input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2315803d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .search-btn {
+            width: 100%;
+            background: linear-gradient(to right, #16a34a, #15803d);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results */
+        .results {
+            margin-top: 24px;
+        }
+
+        .results-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #15803d;
+            margin-bottom: 16px;
+        }
+
+        .venue-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d1fae5;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .venue-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .venue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .venue-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .venue-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #15803d;
+            margin-bottom: 4px;
+        }
+
+        .venue-address {
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .venue-stats {
+            text-align: right;
+        }
+
+        .distance-badge {
+            background: #d1fae5;
+            color: #15803d;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .rating {
+            color: #ffd700;
+            font-size: 16px;
+        }
+
+        .venue-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+        }
+
+        .detail-item a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .detail-item a:hover {
+            text-decoration: underline;
+        }
+
+        .type-badge {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .beers-section {
+            margin-top: 12px;
+        }
+
+        .beers-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #15803d;
+            margin-bottom: 8px;
+        }
+
+        .beers-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .beer-badge {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+
+        .beer-badge.active {
+            background: #16a34a;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-btn {
+            background: #16a34a;
+            color: white;
+        }
+
+        .navigate-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #15803d;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+        }
+
+        .modal-footer {
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #16a34a;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* No results */
+        .no-results {
+            text-align: center;
+            padding: 48px 20px;
+            color: #6b7280;
+        }
+
+        .no-results-text {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .no-results-hint {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header-text h1 {
+                font-size: 20px;
+            }
+            
+            .venue-header {
+                flex-direction: column;
+            }
+            
+            .venue-stats {
+                text-align: left;
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .venue-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* PWA styles */
+        @media (display-mode: standalone) {
+            .header {
+                padding-top: env(safe-area-inset-top, 16px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">PU</div>
+            <div class="header-text">
+                <h1>Pilsner Urquell Finder</h1>
+                <p>Najděte nejlepší piva ve vašem okolí</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search Form -->
+        <div class="search-form">
+            <div class="form-group">
+                <label class="label">
+                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                    Místo
+                </label>
+                <div class="location-group">
+                    <input 
+                        type="text" 
+                        id="location" 
+                        class="input location-input" 
+                        placeholder="Zadejte město (Praha, Brno, Plzeň...)"
+                        value="Praha, Česká republika"
+                    >
+                    <button class="location-btn" onclick="getCurrentLocation()" title="Použít aktuální polohu">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 11.88a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Okolí (km)</label>
+                <input 
+                    type="number" 
+                    id="radius" 
+                    class="input" 
+                    value="5" 
+                    min="1" 
+                    max="50"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="label">Značka piva</label>
+                <select id="beer" class="input">
+                    <option value="Pilsner Urquell">Pilsner Urquell</option>
+                    <option value="Budweiser Budvar">Budweiser Budvar</option>
+                    <option value="Staropramen">Staropramen</option>
+                    <option value="Kozel">Kozel</option>
+                    <option value="Gambrinus">Gambrinus</option>
+                    <option value="Radegast">Radegast</option>
+                    <option value="Bernard">Bernard</option>
+                    <option value="Svijany">Svijany</option>
+                </select>
+            </div>
+
+            <button class="search-btn" onclick="searchVenues()">
+                <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                </svg>
+                <span id="searchBtnText">Vyhledat podniky</span>
+            </button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results"></div>
+    </div>
+
+    <!-- Map Modal -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Mapa</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="map"></div>
+            <div class="modal-footer">
+                <button class="action-btn navigate-btn" onclick="navigateToVenue()" style="width: 100%;">
+                    <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 11.88a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
+                    </svg>
+                    Navigovat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        let userPosition = null;
+        let currentVenue = null;
+        let map = null;
+        let venueMarker = null;
+        let userMarker = null;
+
+        // Mock data
+        const mockVenues = [
+            {
+                id: 1,
+                name: 'Restaurace U Fleku',
+                address: 'Křemencova 11, Praha 1',
+                city: 'Praha',
+                lat: 50.0755,
+                lng: 14.4178,
+                rating: 4.5,
+                phone: '+420 224 934 019',
+                hours: '11:00 - 23:00',
+                beers: ['Pilsner Urquell', 'Kozel', 'Gambrinus'],
+                type: 'Restaurace'
+            },
+            {
+                id: 2,
+                name: 'Pivnice Na Verandách',
+                address: 'Náměstí Míru 84, Praha 2',
+                city: 'Praha',
+                lat: 50.0755,
+                lng: 14.4378,
+                rating: 4.2,
+                phone: '+420 222 251 814',
+                hours: '15:00 - 01:00',
+                beers: ['Pilsner Urquell', 'Budweiser Budvar', 'Bernard'],
+                type: 'Pivnice'
+            },
+            {
+                id: 3,
+                name: 'Hotel Zlatý Lev',
+                address: 'Nerudova 11, Praha 1',
+                city: 'Praha',
+                lat: 50.0878,
+                lng: 14.4023,
+                rating: 4.8,
+                phone: '+420 257 011 111',
+                hours: '12:00 - 24:00',
+                beers: ['Pilsner Urquell', 'Staropramen'],
+                type: 'Hotel & Restaurace'
+            },
+            {
+                id: 4,
+                name: 'Pivnice Pegas',
+                address: 'Jakubská 4, Brno',
+                city: 'Brno',
+                lat: 49.1951,
+                lng: 16.6068,
+                rating: 4.6,
+                phone: '+420 542 210 104',
+                hours: '11:00 - 24:00',
+                beers: ['Pilsner Urquell', 'Staropramen', 'Kozel'],
+                type: 'Pivovar & Restaurace'
+            },
+            {
+                id: 5,
+                name: 'Hospoda U Richarda',
+                address: 'Údolní 10, Brno',
+                city: 'Brno',
+                lat: 49.1901,
+                lng: 16.5968,
+                rating: 4.3,
+                phone: '+420 545 424 333',
+                hours: '16:00 - 02:00',
+                beers: ['Pilsner Urquell', 'Budweiser Budvar', 'Gambrinus'],
+                type: 'Hospoda'
+            },
+            {
+                id: 6,
+                name: 'Plzeňská restaurace',
+                address: 'Pražská 8, Plzeň',
+                city: 'Plzeň',
+                lat: 49.7484,
+                lng: 13.3776,
+                rating: 4.7,
+                phone: '+420 377 223 176',
+                hours: '10:00 - 23:00',
+                beers: ['Pilsner Urquell', 'Gambrinus', 'Kozel'],
+                type: 'Restaurace'
+            },
+            {
+                id: 7,
+                name: 'Pivovar Pilsner Urquell',
+                address: 'U Prazdroje 7, Plzeň',
+                city: 'Plzeň',
+                lat: 49.7484,
+                lng: 13.3876,
+                rating: 4.9,
+                phone: '+420 377 062 888',
+                hours: '09:00 - 22:00',
+                beers: ['Pilsner Urquell'],
+                type: 'Pivovar & Muzeum'
+            },
+            {
+                id: 8,
+                name: 'Stará Aréna',
+                address: 'Českobratrská 18, Ostrava',
+                city: 'Ostrava',
+                lat: 49.8409,
+                lng: 18.2925,
+                rating: 4.1,
+                phone: '+420 596 136 961',
+                hours: '11:00 - 24:00',
+                beers: ['Pilsner Urquell', 'Radegast', 'Staropramen'],
+                type: 'Sportbar & Restaurace'
+            },
+            {
+                id: 9,
+                name: 'Budvar Original',
+                address: 'Karoliny Světlé 27, České Budějovice',
+                city: 'České Budějovice',
+                lat: 48.9744,
+                lng: 14.4743,
+                rating: 4.8,
+                phone: '+420 387 705 341',
+                hours: '10:00 - 23:00',
+                beers: ['Budweiser Budvar', 'Pilsner Urquell'],
+                type: 'Pivovar & Restaurace'
+            }
+        ];
+
+        // Initialize map
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView([50.0755, 14.4378], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+            }
+        }
+
+        // Get current location
+        async function getCurrentLocation() {
+            const btn = document.querySelector('.location-btn');
+            btn.disabled = true;
+            
+            if (!navigator.geolocation) {
+                alert('Vaše zařízení nepodporuje geolokaci');
+                btn.disabled = false;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    // Find closest city
+                    const cities = {
+                        'Praha': { lat: 50.0755, lng: 14.4378 },
+                        'Brno': { lat: 49.1951, lng: 16.6068 },
+                        'Plzeň': { lat: 49.7384, lng: 13.3736 },
+                        'Ostrava': { lat: 49.8209, lng: 18.2625 },
+                        'České Budějovice': { lat: 48.9744, lng: 14.4743 }
+                    };
+                    
+                    let closestCity = 'Praha';
+                    let minDistance = Infinity;
+                    
+                    for (const [city, coords] of Object.entries(cities)) {
+                        const distance = calculateDistance(
+                            userPosition.lat, userPosition.lng,
+                            coords.lat, coords.lng
+                        );
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestCity = city;
+                        }
+                    }
+                    
+                    document.getElementById('location').value = closestCity + ', Česká republika';
+                    btn.disabled = false;
+                },
+                (error) => {
+                    console.error('Chyba při získávání polohy:', error);
+                    alert('Nepodařilo se získat vaši polohu');
+                    btn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Calculate distance between two points
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Search venues
+        function searchVenues() {
+            const location = document.getElementById('location').value;
+            const radius = parseFloat(document.getElementById('radius').value);
+            const selectedBeer = document.getElementById('beer').value;
+            
+            if (!location.trim()) {
+                alert('Prosím zadejte místo');
+                return;
+            }
+            
+            // Show loading state
+            const searchBtn = document.querySelector('.search-btn');
+            const searchBtnText = document.getElementById('searchBtnText');
+            searchBtn.disabled = true;
+            searchBtnText.innerHTML = '<div class="spinner"></div> Vyhledávám...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                const searchCity = location.toLowerCase();
+                
+                // Filter venues
+                let results = mockVenues.filter(venue => {
+                    const cityMatch = searchCity.includes(venue.city.toLowerCase()) || 
+                                    venue.city.toLowerCase().includes(searchCity.split(',')[0].toLowerCase());
+                    const beerMatch = venue.beers.includes(selectedBeer);
+                    return cityMatch && beerMatch;
+                });
+                
+                // Calculate distances
+                if (userPosition) {
+                    results = results.map(venue => ({
+                        ...venue,
+                        distance: calculateDistance(userPosition.lat, userPosition.lng, venue.lat, venue.lng)
+                    })).filter(venue => venue.distance <= radius);
+                } else {
+                    // Simulate distances if no GPS
+                    results = results.map(venue => ({
+                        ...venue,
+                        distance: Math.random() * radius
+                    }));
+                }
+                
+                // Sort by distance
+                results.sort((a, b) => a.distance - b.distance);
+                
+                // Display results
+                displayResults(results, selectedBeer, radius);
+                
+                // Reset button
+                searchBtn.disabled = false;
+                searchBtnText.innerHTML = '<svg class="icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg> Vyhledat podniky';
+            }, 1500);
+        }
