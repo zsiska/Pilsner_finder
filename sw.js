@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pu-finder-v1';
+const CACHE_NAME = 'hospoda-finder-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -12,39 +12,54 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Cache opened');
         return cache.addAll(urlsToCache);
+      })
+  );
+  self.skipWaiting();
+});
+
+// Fetch event - Network first, fallback to cache
+self.addEventListener('fetch', event => {
+  // Skip non-GET requests and Overpass API calls
+  if (event.request.method !== 'GET' || event.request.url.includes('overpass-api')) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Clone the response
+        const responseClone = response.clone();
+        
+        // Cache the fetched response
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, responseClone);
+          });
+        
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(event.request);
       })
   );
 });
 
-// Fetch event
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
-});
-
-// Activate event
+// Activate event - Clean up old caches
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  self.clients.claim();
 });
