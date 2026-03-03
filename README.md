@@ -1,52 +1,65 @@
-# 🍺 Nejbližší Hospoda
+# 🍺 Hospoda AI - Chytrý vyhledávač hospod
 
-Webová aplikace pro vyhledání nejbližší hospody v okolí vaší aktuální polohy.
+Moderní webová aplikace s AI asistentem pro vyhledání nejbližší hospody v okolí.
 
-## Funkce
+## ✨ Nové AI funkce
 
-- **Geolokace** - Automatické zjištění vaší aktuální polohy
-- **Vyhledávání v reálném čase** - Využívá OpenStreetMap (Overpass API) pro vyhledání skutečných hospod, barů a pivních zahrad
-- **Nastavitelný radius** - Možnost nastavit vzdálenost vyhledávání od 500m do 10km
-- **Interaktivní mapa** - Zobrazení hospody na mapě s možností navigace
-- **Navigace** - Přímé propojení s Google Maps pro pěší navigaci
-- **PWA** - Možnost instalace jako aplikace na mobil
+- **🤖 AI Asistent** - Konverzační rozhraní pro přirozené vyhledávání
+- **🎤 Hlasové ovládání** - Řekni co hledáš (Web Speech API)
+- **💡 Chytré doporučení** - AI generované tipy pro každou hospodu
+- **⚡ Quick Actions** - Rychlé filtry (nejbližší, se zahrádkou, levné pivo, otevřeno teď)
+- **🎨 Moderní dark UI** - Elegantní design s animacemi a glassmorphism efekty
 
-## Technologie
+## 🚀 Funkce
 
-- **HTML5** - Geolocation API
-- **CSS3** - Moderní responzivní design
-- **JavaScript** - Vanilla JS bez frameworků
-- **Leaflet.js** - Interaktivní mapy
-- **OpenStreetMap** - Mapové podklady
-- **Overpass API** - Vyhledávání míst (hospody, bary, pivní zahrady)
+### Vyhledávání
+- **Geolokace** - Automatické zjištění aktuální polohy
+- **OpenStreetMap** - Vyhledávání skutečných hospod přes Overpass API
+- **Filtry** - Hospody se zahrádkou, bezbariérové, atd.
+- **Nastavitelný radius** - 500m až 10km
 
-## Jak to funguje
+### Interakce
+- **Chat interface** - Napiš co hledáš přirozeným jazykem
+- **Hlasový vstup** - Podporuje češtinu
+- **Interaktivní mapa** - Dark theme Leaflet mapa
+- **Navigace** - Propojení s Google Maps
 
-1. Klikněte na tlačítko "Najít nejbližší hospodu"
-2. Povolte přístup k vaší poloze
-3. Aplikace vyhledá všechny hospody v okolí
-4. Výsledky jsou seřazeny podle vzdálenosti
-5. Můžete zobrazit hospodu na mapě nebo spustit navigaci
+### Design
+- **Dark mode** - Elegantní tmavý design
+- **Animace** - Plynulé přechody a efekty
+- **Responzivní** - Optimalizováno pro mobily
+- **PWA** - Instalovatelná jako aplikace
 
-## Spuštění lokálně
+## 🛠️ Technologie
+
+- HTML5 + CSS3 (CSS Variables, Glassmorphism, Animations)
+- Vanilla JavaScript (ES6+)
+- Web Speech API (hlasové ovládání)
+- Geolocation API
+- Leaflet.js + CartoDB Dark tiles
+- Overpass API (OpenStreetMap)
+
+## 💬 AI Asistent umí
+
+Napiš nebo řekni:
+- "Ahoj" - přivítání
+- "Hospoda se zahrádkou" - filtr venkovního posezení
+- "Levné pivo" - tip na úsporné hospody
+- "Co je otevřeno teď" - aktuálně otevřené podniky
+- "Tip" - užitečné rady
+
+## 📱 Spuštění
 
 ```bash
-# Jednoduchý HTTP server (Python 3)
+# Python
 python -m http.server 8000
 
-# Nebo pomocí Node.js
+# Node.js
 npx serve
+
+# Pak otevři http://localhost:8000
 ```
 
-Pak otevřete http://localhost:8000
-
-## Data
-
-Aplikace využívá data z OpenStreetMap prostřednictvím Overpass API. Vyhledává místa označená jako:
-- `amenity=pub` (hospody)
-- `amenity=bar` (bary)
-- `amenity=biergarten` (pivní zahrady)
-
-## Licence
+## 📝 Licence
 
 MIT
