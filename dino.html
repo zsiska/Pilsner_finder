@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dinosauři ožívají!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0a;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        #upload-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, #1a2a1a 0%, #0d1f0d 50%, #1a2a1a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #upload-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #upload-screen h1 {
+            color: #4ade80;
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            margin-bottom: 0.3em;
+            text-shadow: 0 0 30px rgba(74, 222, 128, 0.3);
+            letter-spacing: 0.02em;
+        }
+
+        #upload-screen p {
+            color: #a3a3a3;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            margin-bottom: 2em;
+        }
+
+        .upload-zone {
+            width: min(400px, 85vw);
+            height: 200px;
+            border: 2px dashed #4ade80;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(74, 222, 128, 0.03);
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            background: rgba(74, 222, 128, 0.08);
+            border-color: #86efac;
+            transform: scale(1.02);
+        }
+
+        .upload-zone svg {
+            width: 48px;
+            height: 48px;
+            fill: #4ade80;
+            margin-bottom: 1em;
+        }
+
+        .upload-zone span {
+            color: #86efac;
+            font-size: 1.1rem;
+        }
+
+        .upload-zone small {
+            color: #666;
+            margin-top: 0.5em;
+        }
+
+        #file-input { display: none; }
+
+        /* Animation scene */
+        #scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            will-change: transform;
+        }
+
+        #layer-bg {
+            animation: bgDrift 8s ease-in-out infinite alternate;
+            transform-origin: center 30%;
+        }
+
+        #layer-triceratops {
+            clip-path: polygon(0% 10%, 48% 10%, 52% 35%, 48% 55%, 40% 75%, 0% 80%, 0% 10%);
+            animation: triMove 4s ease-in-out infinite alternate;
+            transform-origin: 20% 50%;
+        }
+
+        #layer-trex {
+            clip-path: polygon(38% 0%, 100% 0%, 100% 62%, 62% 62%, 50% 42%, 38% 20%);
+            animation: trexMove 3.5s ease-in-out infinite alternate;
+            transform-origin: 70% 25%;
+        }
+
+        #layer-foliage-left {
+            clip-path: polygon(0% 55%, 35% 50%, 45% 65%, 42% 100%, 0% 100%);
+            animation: foliageSwayLeft 3s ease-in-out infinite alternate;
+            transform-origin: 10% 100%;
+        }
+
+        #layer-foliage-right {
+            clip-path: polygon(55% 52%, 100% 50%, 100% 100%, 50% 100%, 50% 70%);
+            animation: foliageSwayRight 3.8s ease-in-out infinite alternate;
+            transform-origin: 90% 100%;
+        }
+
+        #layer-foliage-bottom {
+            clip-path: polygon(20% 70%, 80% 68%, 85% 100%, 15% 100%);
+            animation: foliageSwayBottom 2.8s ease-in-out infinite alternate;
+            transform-origin: 50% 100%;
+        }
+
+        #layer-child {
+            clip-path: polygon(32% 42%, 58% 40%, 62% 85%, 28% 85%);
+            z-index: 5;
+        }
+
+        @keyframes bgDrift {
+            0% { transform: scale(1.02) translate(0px, 0px); }
+            100% { transform: scale(1.04) translate(-4px, -2px); }
+        }
+
+        @keyframes triMove {
+            0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+            30% { transform: translate(3px, -1px) rotate(0.3deg) scale(1.002); }
+            70% { transform: translate(5px, 1px) rotate(0.6deg) scale(1.004); }
+            100% { transform: translate(7px, -2px) rotate(0.8deg) scale(1.003); }
+        }
+
+        @keyframes trexMove {
+            0% { transform: translate(0px, 0px) rotate(0deg); }
+            25% { transform: translate(-2px, 2px) rotate(-0.4deg); }
+            50% { transform: translate(-4px, 0px) rotate(-0.2deg); }
+            75% { transform: translate(-1px, 3px) rotate(-0.6deg); }
+            100% { transform: translate(-5px, 1px) rotate(-0.8deg); }
+        }
+
+        @keyframes foliageSwayLeft {
+            0% { transform: translate(0px, 0px) rotate(0deg); }
+            50% { transform: translate(4px, -2px) rotate(0.5deg); }
+            100% { transform: translate(6px, -1px) rotate(0.8deg); }
+        }
+
+        @keyframes foliageSwayRight {
+            0% { transform: translate(0px, 0px) rotate(0deg); }
+            50% { transform: translate(-3px, -1px) rotate(-0.4deg); }
+            100% { transform: translate(-5px, -2px) rotate(-0.7deg); }
+        }
+
+        @keyframes foliageSwayBottom {
+            0% { transform: translate(0px, 0px) scaleX(1); }
+            50% { transform: translate(2px, -1px) scaleX(1.005); }
+            100% { transform: translate(-2px, -2px) scaleX(0.995); }
+        }
+
+        /* Atmospheric overlay canvas */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Vignette overlay */
+        #vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 11;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+            animation: vignetteBreath 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes vignetteBreath {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Light rays */
+        #light-rays {
+            position: absolute;
+            inset: 0;
+            z-index: 9;
+            pointer-events: none;
+            opacity: 0;
+            background: linear-gradient(
+                135deg,
+                transparent 20%,
+                rgba(255, 220, 100, 0.06) 30%,
+                transparent 40%,
+                rgba(255, 220, 100, 0.04) 55%,
+                transparent 65%
+            );
+            animation: lightPulse 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes lightPulse {
+            0% { opacity: 0; transform: translateX(-20px); }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; transform: translateX(20px); }
+        }
+
+        /* Sound toggle */
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(74, 222, 128, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            color: #4ade80;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+            transform: scale(1.1);
+        }
+
+        /* Title overlay */
+        #title-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            color: white;
+            font-size: clamp(1rem, 3vw, 1.8rem);
+            font-weight: 700;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5);
+            letter-spacing: 0.05em;
+            opacity: 0;
+            animation: titleFadeIn 2s ease 1s forwards;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @keyframes titleFadeIn {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Roar effect */
+        .roar-flash {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+            background: radial-gradient(circle at 70% 25%, rgba(255,100,50,0.15), transparent 60%);
+            opacity: 0;
+            animation: roarFlash 0.6s ease-out forwards;
+        }
+
+        @keyframes roarFlash {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Shake effect */
+        .shake {
+            animation: earthShake 0.5s ease-out;
+        }
+
+        @keyframes earthShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-3px, 2px); }
+            20% { transform: translate(4px, -2px); }
+            30% { transform: translate(-2px, 3px); }
+            40% { transform: translate(3px, -1px); }
+            50% { transform: translate(-1px, 2px); }
+            60% { transform: translate(2px, -2px); }
+            70% { transform: translate(-2px, 1px); }
+            80% { transform: translate(1px, -1px); }
+            90% { transform: translate(-1px, 1px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Upload screen -->
+    <div id="upload-screen">
+        <h1>Dinosauři ožívají!</h1>
+        <p>Nahraj fotku s dinosaury a sleduj, jak ožijí</p>
+        <div class="upload-zone" id="upload-zone">
+            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+            <span>Klikni nebo přetáhni fotku</span>
+            <small>JPG, PNG, WebP</small>
+        </div>
+        <input type="file" id="file-input" accept="image/*">
+    </div>
+
+    <!-- Animation scene -->
+    <div id="scene" style="display:none;">
+        <div id="layer-bg" class="layer"></div>
+        <div id="layer-triceratops" class="layer"></div>
+        <div id="layer-trex" class="layer"></div>
+        <div id="layer-foliage-left" class="layer"></div>
+        <div id="layer-foliage-right" class="layer"></div>
+        <div id="layer-foliage-bottom" class="layer"></div>
+        <div id="layer-child" class="layer"></div>
+        <canvas id="particles-canvas"></canvas>
+        <div id="light-rays"></div>
+        <div id="vignette"></div>
+        <div id="title-overlay">Dinosauři ožívají!</div>
+    </div>
+
+    <div id="controls" style="display:none;">
+        <button class="ctrl-btn" id="btn-roar" title="Řev T-Rexe">🦖</button>
+        <button class="ctrl-btn" id="btn-pause" title="Pozastavit animaci">⏸</button>
+        <button class="ctrl-btn" id="btn-new" title="Nahrát novou fotku">📷</button>
+    </div>
+
+<script>
+const uploadScreen = document.getElementById('upload-screen');
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+const scene = document.getElementById('scene');
+const controls = document.getElementById('controls');
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+
+let particles = [];
+let animationPaused = false;
+let animFrameId = null;
+let imageUrl = null;
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) loadImage(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) loadImage(e.target.files[0]);
+});
+
+function loadImage(file) {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        imageUrl = e.target.result;
+        startAnimation(imageUrl);
+    };
+    reader.readAsDataURL(file);
+}
+
+function startAnimation(url) {
+    uploadScreen.classList.add('hidden');
+    scene.style.display = 'block';
+    controls.style.display = 'flex';
+
+    document.querySelectorAll('.layer').forEach(layer => {
+        layer.style.backgroundImage = `url('${url}')`;
+    });
+
+    initCanvas();
+    initParticles();
+    animate();
+}
+
+function initCanvas() {
+    const resize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+}
+
+function initParticles() {
+    particles = [];
+
+    // Dust motes
+    for (let i = 0; i < 60; i++) {
+        particles.push({
+            type: 'dust',
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 2.5 + 0.5,
+            speedX: (Math.random() - 0.5) * 0.3,
+            speedY: -Math.random() * 0.2 - 0.05,
+            opacity: Math.random() * 0.4 + 0.1,
+            phase: Math.random() * Math.PI * 2,
+            phaseSpeed: Math.random() * 0.02 + 0.005
+        });
+    }
+
+    // Fog wisps
+    for (let i = 0; i < 12; i++) {
+        particles.push({
+            type: 'fog',
+            x: Math.random() * canvas.width,
+            y: canvas.height * 0.3 + Math.random() * canvas.height * 0.5,
+            width: Math.random() * 200 + 100,
+            height: Math.random() * 40 + 20,
+            speedX: (Math.random() - 0.5) * 0.4,
+            opacity: Math.random() * 0.06 + 0.02,
+            phase: Math.random() * Math.PI * 2,
+            phaseSpeed: Math.random() * 0.008 + 0.002
+        });
+    }
+
+    // Spores/pollen
+    for (let i = 0; i < 25; i++) {
+        particles.push({
+            type: 'spore',
+            x: Math.random() * canvas.width,
+            y: canvas.height * 0.5 + Math.random() * canvas.height * 0.5,
+            size: Math.random() * 3 + 1,
+            speedX: (Math.random() - 0.5) * 0.15,
+            speedY: -Math.random() * 0.3 - 0.1,
+            opacity: Math.random() * 0.3 + 0.1,
+            phase: Math.random() * Math.PI * 2,
+            phaseSpeed: Math.random() * 0.03 + 0.01,
+            color: Math.random() > 0.5 ? '180,220,100' : '200,200,150'
+        });
+    }
+}
+
+function animate() {
+    if (animationPaused) {
+        animFrameId = requestAnimationFrame(animate);
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+        p.phase += p.phaseSpeed;
+
+        if (p.type === 'dust') {
+            p.x += p.speedX + Math.sin(p.phase) * 0.3;
+            p.y += p.speedY;
+            if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+            if (p.x < -10) p.x = canvas.width + 10;
+            if (p.x > canvas.width + 10) p.x = -10;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 220, ${p.opacity * (0.7 + 0.3 * Math.sin(p.phase))})`;
+            ctx.fill();
+        }
+        else if (p.type === 'fog') {
+            p.x += p.speedX;
+            if (p.x < -p.width) p.x = canvas.width;
+            if (p.x > canvas.width + p.width) p.x = -p.width;
+
+            const gradient = ctx.createRadialGradient(
+                p.x, p.y, 0,
+                p.x, p.y, p.width / 2
+            );
+            const op = p.opacity * (0.6 + 0.4 * Math.sin(p.phase));
+            gradient.addColorStop(0, `rgba(200, 220, 200, ${op})`);
+            gradient.addColorStop(1, 'rgba(200, 220, 200, 0)');
+
+            ctx.save();
+            ctx.scale(1, p.height / p.width);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y * (p.width / p.height), p.width / 2, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.restore();
+        }
+        else if (p.type === 'spore') {
+            p.x += p.speedX + Math.sin(p.phase) * 0.5;
+            p.y += p.speedY + Math.cos(p.phase * 0.7) * 0.2;
+            if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+            if (p.x < -10) p.x = canvas.width + 10;
+            if (p.x > canvas.width + 10) p.x = -10;
+
+            const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
+            const op = p.opacity * (0.5 + 0.5 * Math.sin(p.phase));
+            glow.addColorStop(0, `rgba(${p.color}, ${op})`);
+            glow.addColorStop(1, `rgba(${p.color}, 0)`);
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.color}, ${op * 1.5})`;
+            ctx.fill();
+        }
+    });
+
+    animFrameId = requestAnimationFrame(animate);
+}
+
+// Roar effect
+document.getElementById('btn-roar').addEventListener('click', () => {
+    const flash = document.createElement('div');
+    flash.className = 'roar-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+
+    scene.classList.add('shake');
+    setTimeout(() => scene.classList.remove('shake'), 500);
+
+    const trexLayer = document.getElementById('layer-trex');
+    trexLayer.style.animation = 'none';
+    trexLayer.offsetHeight;
+    trexLayer.style.animation = '';
+
+    playRoarSound();
+});
+
+function playRoarSound() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const duration = 1.2;
+
+    const noise = audioCtx.createBufferSource();
+    const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.4));
+    }
+    noise.buffer = buffer;
+
+    const bandpass = audioCtx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(150, audioCtx.currentTime);
+    bandpass.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + duration);
+    bandpass.Q.value = 2;
+
+    const lowpass = audioCtx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.value = 300;
+
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(90, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + duration);
+
+    const oscGain = audioCtx.createGain();
+    oscGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+    const oscLowpass = audioCtx.createBiquadFilter();
+    oscLowpass.type = 'lowpass';
+    oscLowpass.frequency.value = 200;
+
+    noise.connect(bandpass).connect(lowpass).connect(gain).connect(audioCtx.destination);
+    osc.connect(oscLowpass).connect(oscGain).connect(audioCtx.destination);
+
+    noise.start();
+    osc.start();
+    noise.stop(audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+// Pause/resume
+document.getElementById('btn-pause').addEventListener('click', function() {
+    animationPaused = !animationPaused;
+    this.textContent = animationPaused ? '▶' : '⏸';
+
+    document.querySelectorAll('.layer').forEach(layer => {
+        layer.style.animationPlayState = animationPaused ? 'paused' : 'running';
+    });
+
+    document.getElementById('vignette').style.animationPlayState = animationPaused ? 'paused' : 'running';
+    document.getElementById('light-rays').style.animationPlayState = animationPaused ? 'paused' : 'running';
+});
+
+// New photo
+document.getElementById('btn-new').addEventListener('click', () => {
+    scene.style.display = 'none';
+    controls.style.display = 'none';
+    uploadScreen.classList.remove('hidden');
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    animationPaused = false;
+    document.getElementById('btn-pause').textContent = '⏸';
+    fileInput.value = '';
+});
+
+// Click on T-Rex area triggers roar
+scene.addEventListener('click', (e) => {
+    const rect = scene.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    if (x > 0.4 && y < 0.5) {
+        document.getElementById('btn-roar').click();
+    }
+});
+
+// Try to load default image
+const defaultImg = new Image();
+defaultImg.onload = () => startAnimation('dino.jpg');
+defaultImg.onerror = () => {};
+defaultImg.src = 'dino.jpg';
+</script>
+</body>
+</html>
