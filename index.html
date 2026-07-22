@@ -3,28 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hospoda AI - Najdi si hospodu</title>
+    <title>Hospoda AI | Najdi hospodu poblíž</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#09090b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #f59e0b;
-            --primary-dark: #d97706;
-            --accent: #8b5cf6;
-            --accent-light: #a78bfa;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --success: #22c55e;
-            --error: #ef4444;
-            --glass: rgba(30, 41, 59, 0.8);
-            --border: rgba(148, 163, 184, 0.1);
+            --bg: #09090b;
+            --bg-elevated: #18181b;
+            --bg-card: #1f1f23;
+            --bg-hover: #27272a;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --text: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --purple: #a855f7;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --gradient: linear-gradient(135deg, #f97316 0%, #a855f7 100%);
+            --glass: rgba(24, 24, 27, 0.8);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
         }
 
         * {
@@ -34,146 +43,203 @@
         }
 
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            color: var(--text-primary);
+            min-height: 100dvh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Animated background */
-        .bg-animation {
+        /* Animated gradient background */
+        .gradient-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: -1;
             overflow: hidden;
         }
 
-        .bg-animation::before {
-            content: '';
+        .gradient-orb {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 70%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
-            animation: bgFloat 20s ease-in-out infinite;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
         }
 
-        @keyframes bgFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-20px, -20px) rotate(5deg); }
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--accent);
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--purple);
+            bottom: -150px;
+            left: -150px;
+            animation-delay: -10s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--blue);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(-30px, -20px) scale(1.02); }
         }
 
         /* Header */
         .header {
-            background: linear-gradient(180deg, var(--bg-dark) 0%, transparent 100%);
-            padding: 20px;
             position: sticky;
             top: 0;
             z-index: 100;
+            padding: 16px 20px;
+            background: rgba(9, 9, 11, 0.8);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
         }
 
-        .header-content {
-            max-width: 600px;
+        .header-inner {
+            max-width: 640px;
             margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
         .logo {
-            width: 52px;
-            height: 52px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 16px;
+            width: 48px;
+            height: 48px;
+            background: var(--gradient);
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+            font-size: 24px;
             position: relative;
-            overflow: hidden;
+            flex-shrink: 0;
         }
 
-        .logo::after {
+        .logo::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
-            animation: logoShine 3s ease-in-out infinite;
+            inset: -1px;
+            background: var(--gradient);
+            border-radius: var(--radius-sm);
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(8px);
         }
 
-        @keyframes logoShine {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
+        .header-content {
+            flex: 1;
+            min-width: 0;
         }
 
-        .header-text h1 {
-            font-size: 22px;
+        .header-title {
+            font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-tag {
+            background: var(--gradient);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Main */
+        .main {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 120px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 32px 0 40px;
+        }
+
+        .hero-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .header-text p {
-            font-size: 13px;
+        .hero-subtitle {
+            font-size: 16px;
             color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .ai-badge {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Container */
-        .container {
-            max-width: 600px;
+            max-width: 300px;
             margin: 0 auto;
-            padding: 0 20px 100px;
+            line-height: 1.5;
         }
 
-        /* AI Chat Section */
-        .ai-section {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+        /* AI Chat Card */
+        .ai-card {
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 20px;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
         .ai-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .ai-avatar {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            border-radius: 14px;
+            background: var(--gradient);
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -181,131 +247,99 @@
             position: relative;
         }
 
-        .ai-avatar::before {
+        .ai-avatar::after {
             content: '';
             position: absolute;
-            inset: -2px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            border-radius: 16px;
+            inset: 0;
+            border-radius: var(--radius-sm);
+            background: var(--gradient);
             z-index: -1;
+            filter: blur(12px);
             opacity: 0.5;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { opacity: 0.3; transform: scale(0.95); }
+            to { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        .ai-meta {
+            flex: 1;
+        }
+
+        .ai-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .ai-status {
+            font-size: 12px;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
             animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.3; }
-        }
-
-        .ai-info h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .ai-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .ai-status {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--success);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
 
-        /* Chat input */
-        .chat-input-container {
+        /* Chat Input */
+        .chat-form {
             position: relative;
         }
 
         .chat-input {
             width: 100%;
-            background: var(--bg-card);
+            background: var(--bg-elevated);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 16px 100px 16px 20px;
+            border-radius: var(--radius-sm);
+            padding: 14px 110px 14px 16px;
             font-size: 15px;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
+            color: var(--text);
+            font-family: inherit;
+            transition: all 0.2s;
         }
 
         .chat-input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
         }
 
         .chat-input::placeholder {
             color: var(--text-muted);
         }
 
-        .chat-actions {
+        .chat-buttons {
             position: absolute;
-            right: 8px;
+            right: 6px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
 
         .chat-btn {
             width: 40px;
             height: 40px;
             border: none;
-            border-radius: 12px;
+            border-radius: var(--radius-xs);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .voice-btn {
-            background: var(--bg-card-hover);
-            color: var(--text-secondary);
-        }
-
-        .voice-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .voice-btn.listening {
-            background: var(--error);
-            color: white;
-            animation: voicePulse 1s ease-in-out infinite;
-        }
-
-        @keyframes voicePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            color: white;
-        }
-
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+            transition: all 0.2s;
         }
 
         .chat-btn svg {
@@ -313,32 +347,65 @@
             height: 20px;
         }
 
-        /* Quick actions */
+        .mic-btn {
+            background: var(--bg-hover);
+            color: var(--text-secondary);
+        }
+
+        .mic-btn:hover {
+            background: var(--border-light);
+            color: var(--text);
+        }
+
+        .mic-btn.active {
+            background: var(--red);
+            color: white;
+            animation: recording 1s ease-in-out infinite;
+        }
+
+        @keyframes recording {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .send-btn {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .send-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* Quick Actions */
         .quick-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: 14px;
         }
 
         .quick-btn {
-            background: var(--bg-card);
+            background: var(--bg-elevated);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 8px 16px;
+            border-radius: 100px;
+            padding: 8px 14px;
             font-size: 13px;
+            font-weight: 500;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .quick-btn:hover {
-            background: var(--bg-card-hover);
-            color: var(--text-primary);
-            border-color: var(--accent);
+            background: var(--bg-hover);
+            border-color: var(--border-light);
+            color: var(--text);
         }
 
         .quick-btn svg {
@@ -348,165 +415,154 @@
 
         /* AI Response */
         .ai-response {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 16px;
-            padding: 16px;
             margin-top: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: var(--radius-sm);
             display: none;
         }
 
-        .ai-response.active {
+        .ai-response.show {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: slideIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .ai-response-text {
             font-size: 14px;
             line-height: 1.6;
-            color: var(--text-primary);
+            color: var(--text);
         }
 
-        .typing-indicator {
+        .typing {
             display: flex;
             gap: 4px;
-            padding: 8px 0;
+            padding: 4px 0;
         }
 
-        .typing-dot {
+        .typing span {
             width: 8px;
             height: 8px;
             background: var(--accent);
             border-radius: 50%;
-            animation: typingBounce 1.4s ease-in-out infinite;
+            animation: typing 1.4s ease-in-out infinite;
         }
 
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-8px); }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
         }
 
-        /* Settings Card */
+        /* Settings */
         .settings-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .settings-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border-radius: var(--radius);
+            padding: 18px 20px;
             margin-bottom: 16px;
         }
 
-        .settings-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .settings-title svg {
-            width: 18px;
-            height: 18px;
-            color: var(--primary);
-        }
-
-        .radius-container {
+        .settings-row {
             display: flex;
             align-items: center;
             gap: 16px;
         }
 
-        .radius-slider {
+        .settings-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .slider-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider {
             flex: 1;
             -webkit-appearance: none;
             height: 6px;
+            background: var(--border);
             border-radius: 3px;
-            background: var(--bg-card);
             outline: none;
         }
 
-        .radius-slider::-webkit-slider-thumb {
+        .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
+            background: var(--gradient);
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-            transition: transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+            transition: transform 0.2s;
         }
 
-        .radius-slider::-webkit-slider-thumb:hover {
+        .slider::-webkit-slider-thumb:hover {
             transform: scale(1.1);
         }
 
-        .radius-value {
-            background: var(--bg-card);
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--primary);
-            min-width: 70px;
+        .slider-value {
+            min-width: 55px;
             text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--bg-elevated);
+            padding: 6px 10px;
+            border-radius: var(--radius-xs);
         }
 
-        /* Main Find Button */
+        /* Find Button */
         .find-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            background: var(--gradient);
             color: white;
             border: none;
-            padding: 18px 32px;
-            border-radius: 16px;
+            padding: 18px 24px;
+            border-radius: var(--radius);
             font-size: 17px;
             font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
-            margin-bottom: 24px;
+            gap: 10px;
+            transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            margin-bottom: 24px;
         }
 
         .find-btn::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
+            transform: translateX(-100%);
+            transition: transform 0.6s;
         }
 
         .find-btn:hover::before {
-            left: 100%;
+            transform: translateX(100%);
         }
 
         .find-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4);
         }
 
         .find-btn:active {
@@ -520,25 +576,24 @@
         }
 
         .find-btn svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
         }
 
-        /* Status Card */
+        /* Status */
         .status-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: var(--radius);
+            padding: 32px 20px;
             text-align: center;
             margin-bottom: 20px;
             display: none;
         }
 
-        .status-card.active {
+        .status-card.show {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: slideIn 0.3s ease;
         }
 
         .status-icon {
@@ -549,8 +604,7 @@
         .status-title {
             font-size: 18px;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .status-text {
@@ -561,10 +615,10 @@
         .spinner {
             width: 48px;
             height: 48px;
-            border: 3px solid var(--bg-card);
+            border: 3px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto 12px;
         }
 
@@ -572,24 +626,25 @@
             to { transform: rotate(360deg); }
         }
 
-        .coords-display {
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 10px 16px;
+        .coords {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xs);
             font-size: 12px;
             color: var(--text-muted);
-            margin-top: 12px;
-            font-family: 'SF Mono', monospace;
+            font-family: 'SF Mono', Monaco, monospace;
+            display: inline-block;
         }
 
-        /* Results Section */
-        .results-section {
+        /* Results */
+        .results {
             display: none;
         }
 
-        .results-section.active {
+        .results.show {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: slideIn 0.3s ease;
         }
 
         .results-header {
@@ -602,89 +657,84 @@
         .results-title {
             font-size: 18px;
             font-weight: 700;
-            color: var(--text-primary);
         }
 
-        .results-count {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
+        .results-badge {
+            background: var(--gradient);
+            padding: 5px 14px;
+            border-radius: 100px;
             font-size: 13px;
             font-weight: 600;
         }
 
         /* Pub Card */
         .pub-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
             position: relative;
-            overflow: hidden;
         }
 
         .pub-card::before {
             content: '';
             position: absolute;
-            top: 0;
             left: 0;
+            top: 0;
+            bottom: 0;
             width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+            background: var(--gradient);
+            border-radius: var(--radius) 0 0 var(--radius);
         }
 
         .pub-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-            border-color: var(--accent);
+            border-color: var(--border-light);
+            transform: translateX(4px);
         }
 
-        .pub-card.nearest::before {
-            background: linear-gradient(180deg, var(--success) 0%, #10b981 100%);
-        }
-
-        .pub-card.nearest {
+        .pub-card.top {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
             border-color: rgba(34, 197, 94, 0.3);
         }
 
-        .pub-header {
+        .pub-card.top::before {
+            background: var(--green);
+        }
+
+        .pub-top {
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .pub-rank {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 12px;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient);
+            border-radius: var(--radius-xs);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            color: white;
             flex-shrink: 0;
         }
 
-        .pub-card.nearest .pub-rank {
-            background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+        .pub-card.top .pub-rank {
+            background: var(--green);
         }
 
-        .pub-info {
+        .pub-main {
             flex: 1;
             min-width: 0;
         }
 
         .pub-name {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -692,150 +742,137 @@
             flex-wrap: wrap;
         }
 
-        .nearest-badge {
-            background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
-            padding: 3px 10px;
-            border-radius: 6px;
+        .top-badge {
+            background: var(--green);
+            padding: 2px 8px;
+            border-radius: 4px;
             font-size: 10px;
             font-weight: 700;
-            color: white;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .pub-address {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .pub-address svg {
             width: 14px;
             height: 14px;
             flex-shrink: 0;
-            color: var(--text-muted);
         }
 
-        .pub-distance {
-            background: var(--bg-card);
-            padding: 10px 16px;
-            border-radius: 14px;
-            text-align: center;
+        .pub-dist {
+            text-align: right;
             flex-shrink: 0;
         }
 
-        .distance-value {
+        .dist-value {
             font-size: 20px;
             font-weight: 700;
-            color: var(--primary);
-            line-height: 1;
+            color: var(--accent);
         }
 
-        .pub-card.nearest .distance-value {
-            color: var(--success);
+        .pub-card.top .dist-value {
+            color: var(--green);
         }
 
-        .distance-unit {
+        .dist-unit {
             font-size: 11px;
             color: var(--text-muted);
-            margin-top: 2px;
         }
 
-        /* AI Recommendation */
-        .ai-recommendation {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 12px;
-            padding: 12px;
+        /* AI Tip */
+        .ai-tip {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: var(--radius-xs);
+            padding: 10px 12px;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .ai-recommendation-icon {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
+        .ai-tip-icon {
+            font-size: 18px;
         }
 
-        .ai-recommendation-text {
+        .ai-tip-text {
             font-size: 12px;
             color: var(--text-secondary);
             line-height: 1.4;
         }
 
-        .pub-details {
+        /* Pub Meta */
+        .pub-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            padding: 12px 0;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
+            gap: 8px;
             margin-bottom: 12px;
         }
 
-        .detail-item {
+        .meta-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-size: 12px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
 
-        .detail-item svg {
+        .meta-item svg {
             width: 14px;
             height: 14px;
-            color: var(--primary);
+            color: var(--accent);
         }
 
-        .detail-item a {
-            color: var(--accent);
+        .meta-item a {
+            color: var(--blue);
             text-decoration: none;
         }
 
+        /* Tags */
         .pub-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .tag {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            padding: 5px 12px;
-            border-radius: 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
             font-size: 11px;
             font-weight: 500;
+            color: var(--text-secondary);
         }
 
+        /* Actions */
         .pub-actions {
-            display: flex;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
         .action-btn {
-            flex: 1;
             padding: 12px 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: var(--radius-xs);
             font-size: 13px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
+            gap: 6px;
+            transition: all 0.2s;
         }
 
         .action-btn svg {
@@ -844,303 +881,243 @@
         }
 
         .map-btn {
-            background: var(--bg-card);
-            color: var(--text-primary);
+            background: var(--bg-elevated);
             border: 1px solid var(--border);
+            color: var(--text);
         }
 
         .map-btn:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent);
+            background: var(--bg-hover);
+            border-color: var(--border-light);
         }
 
         .nav-btn {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            background: var(--gradient);
             color: white;
         }
 
         .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
         /* Modal */
         .modal {
-            display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
+            display: none;
             align-items: flex-end;
             justify-content: center;
-            backdrop-filter: blur(8px);
         }
 
-        .modal.active {
+        .modal.show {
             display: flex;
         }
 
-        .modal-content {
+        .modal-box {
             background: var(--bg-card);
-            border-radius: 24px 24px 0 0;
             width: 100%;
-            max-width: 600px;
+            max-width: 640px;
             max-height: 85vh;
+            border-radius: var(--radius) var(--radius) 0 0;
             overflow: hidden;
-            animation: slideUp 0.3s ease;
+            animation: modalUp 0.3s ease;
         }
 
-        @keyframes slideUp {
+        @keyframes modalUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
         }
 
-        .modal-header {
+        .modal-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: 18px 20px;
             border-bottom: 1px solid var(--border);
         }
 
         .modal-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 17px;
+            font-weight: 600;
         }
 
-        .close-btn {
-            background: var(--bg-card-hover);
-            border: none;
+        .modal-close {
             width: 36px;
             height: 36px;
+            background: var(--bg-elevated);
+            border: none;
             border-radius: 50%;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            color: var(--text-secondary);
-            transition: all 0.2s ease;
+            font-size: 20px;
+            color: var(--text-muted);
+            transition: all 0.2s;
         }
 
-        .close-btn:hover {
-            background: var(--error);
+        .modal-close:hover {
+            background: var(--red);
             color: white;
         }
 
         #map {
-            height: 350px;
-            width: 100%;
+            height: 320px;
         }
 
-        .modal-footer {
-            padding: 20px;
+        .modal-foot {
+            padding: 16px 20px;
         }
 
         /* Responsive */
         @media (max-width: 480px) {
-            .header-text h1 {
-                font-size: 18px;
-            }
-
-            .pub-header {
+            .hero-title { font-size: 26px; }
+            .hero-icon { font-size: 52px; }
+            
+            .pub-top {
                 flex-wrap: wrap;
             }
-
-            .pub-distance {
+            
+            .pub-dist {
                 width: 100%;
+                text-align: left;
                 display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                padding: 12px;
+                align-items: baseline;
+                gap: 6px;
+                margin-top: 4px;
             }
-
-            .distance-value {
-                font-size: 18px;
-            }
-
-            .distance-unit {
-                margin: 0;
-            }
-
+            
             .pub-actions {
-                flex-direction: column;
-            }
-
-            .quick-actions {
-                justify-content: center;
+                grid-template-columns: 1fr;
             }
         }
 
-        /* PWA */
         @media (display-mode: standalone) {
             .header {
-                padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
+                padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
             }
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--bg-card-hover);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
+        /* Leaflet overrides */
+        .leaflet-tile-pane {
+            filter: brightness(0.8) saturate(0.9);
         }
     </style>
 </head>
 <body>
-    <div class="bg-animation"></div>
-
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">🍺</div>
-            <div class="header-text">
-                <h1>Hospoda AI</h1>
-                <p>Chytrý vyhledávač hospod <span class="ai-badge">AI</span></p>
-            </div>
-        </div>
+    <div class="gradient-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container">
-        <!-- AI Chat Section -->
-        <div class="ai-section">
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">🍺</div>
+            <div class="header-content">
+                <h1 class="header-title">Hospoda AI <span class="ai-tag">AI</span></h1>
+                <p class="header-subtitle">Chytrý vyhledávač hospod</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero">
+            <div class="hero-icon">🍻</div>
+            <h2 class="hero-title">Najdi hospodu poblíž</h2>
+            <p class="hero-subtitle">AI ti pomůže najít nejlepší místo na pivo ve tvém okolí</p>
+        </section>
+
+        <div class="ai-card">
             <div class="ai-header">
                 <div class="ai-avatar">🤖</div>
-                <div class="ai-info">
-                    <h3>AI Asistent</h3>
-                    <p>Zeptej se mě na cokoliv o hospodách</p>
-                </div>
-                <div class="ai-status">
-                    <span class="status-dot"></span>
-                    Online
+                <div class="ai-meta">
+                    <div class="ai-name">AI Asistent</div>
+                    <div class="ai-status">
+                        <span class="status-dot"></span>
+                        Online
+                    </div>
                 </div>
             </div>
 
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Napiš co hledáš... např. 'hospoda s pivní zahradou'" onkeypress="handleChatKeypress(event)">
-                <div class="chat-actions">
-                    <button class="chat-btn voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                        </svg>
+            <div class="chat-form">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Napiš co hledáš..." onkeydown="if(event.key==='Enter')sendMessage()">
+                <div class="chat-buttons">
+                    <button class="chat-btn mic-btn" id="micBtn" onclick="toggleMic()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
                     </button>
-                    <button class="chat-btn send-btn" onclick="sendChat()">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                        </svg>
+                    <button class="chat-btn send-btn" onclick="sendMessage()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                     </button>
                 </div>
             </div>
 
             <div class="quick-actions">
-                <button class="quick-btn" onclick="quickSearch('nejbližší')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    </svg>
+                <button class="quick-btn" onclick="quickAction('nearest')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                     Nejbližší
                 </button>
-                <button class="quick-btn" onclick="quickSearch('zahradka')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
-                    </svg>
-                    Se zahrádkou
+                <button class="quick-btn" onclick="quickAction('garden')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                    Zahrádka
                 </button>
-                <button class="quick-btn" onclick="quickSearch('nejlevnejsi')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Levné pivo
-                </button>
-                <button class="quick-btn" onclick="quickSearch('otevreno')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Otevřeno teď
+                <button class="quick-btn" onclick="quickAction('open')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Otevřeno
                 </button>
             </div>
 
             <div class="ai-response" id="aiResponse">
-                <div class="ai-response-text" id="aiResponseText"></div>
+                <div class="ai-response-text" id="aiText"></div>
             </div>
         </div>
 
-        <!-- Settings -->
         <div class="settings-card">
-            <div class="settings-header">
-                <div class="settings-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    Radius vyhledávání
+            <div class="settings-row">
+                <span class="settings-label">Radius</span>
+                <div class="slider-container">
+                    <input type="range" class="slider" id="radiusSlider" min="500" max="10000" step="500" value="2000" oninput="updateRadius()">
+                    <div class="slider-value" id="radiusVal">2 km</div>
                 </div>
             </div>
-            <div class="radius-container">
-                <input type="range" id="radiusSlider" class="radius-slider" min="500" max="10000" step="500" value="2000" oninput="updateRadiusDisplay()">
-                <div class="radius-value" id="radiusValue">2 km</div>
-            </div>
         </div>
 
-        <!-- Main Find Button -->
-        <button class="find-btn" id="findBtn" onclick="findNearestPubs()">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <span id="findBtnText">Najít hospody v okolí</span>
+        <button class="find-btn" id="findBtn" onclick="findPubs()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span id="findBtnText">Najít hospody</span>
         </button>
 
-        <!-- Status Card -->
         <div class="status-card" id="statusCard">
-            <div id="statusIcon" class="status-icon"></div>
-            <div id="statusTitle" class="status-title"></div>
-            <div id="statusText" class="status-text"></div>
-            <div id="coordsDisplay" class="coords-display hidden"></div>
+            <div id="statusIcon"></div>
+            <div class="status-title" id="statusTitle"></div>
+            <div class="status-text" id="statusText"></div>
         </div>
 
-        <!-- Results Section -->
-        <div class="results-section" id="resultsSection">
+        <div class="results" id="results">
             <div class="results-header">
-                <div class="results-title">Nalezené hospody</div>
-                <div class="results-count" id="resultsCount">0</div>
+                <h3 class="results-title">Nalezeno</h3>
+                <span class="results-badge" id="resultsBadge">0</span>
             </div>
             <div id="resultsList"></div>
         </div>
-    </div>
+    </main>
 
-    <!-- Map Modal -->
-    <div id="mapModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <div class="modal-head">
                 <h3 class="modal-title" id="modalTitle">Mapa</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div id="map"></div>
-            <div class="modal-footer">
-                <button class="action-btn nav-btn" onclick="navigateFromModal()" style="width: 100%;">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                    </svg>
-                    Spustit navigaci
+            <div class="modal-foot">
+                <button class="action-btn nav-btn" onclick="navFromModal()" style="width:100%">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    Navigovat do Google Maps
                 </button>
             </div>
         </div>
@@ -1148,626 +1125,444 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Global variables
-        let userPosition = null;
+        // State
+        let userPos = null;
+        let pubs = [];
         let currentPub = null;
         let map = null;
-        let pubsData = [];
         let isListening = false;
         let recognition = null;
 
-        // AI responses database
-        const aiResponses = {
-            greeting: [
-                "Ahoj! 👋 Jsem tvůj AI asistent pro hledání hospod. Stačí kliknout na tlačítko níže nebo mi napsat, co hledáš!",
-                "Čau! 🍺 Rád ti pomohu najít skvělou hospodu. Co preferuješ?",
-                "Zdravím! Jsem tu, abych ti pomohl najít ideální místo na pivo. Pusť se do toho!"
+        // AI Responses
+        const responses = {
+            greet: [
+                "Ahoj! 👋 Jsem tvůj AI hospodní průvodce. Klikni na tlačítko nebo mi napiš co hledáš!",
+                "Čau! 🍺 Jsem připravený ti najít skvělou hospodu. Co to bude?",
+                "Zdravím tě! Pomůžu ti najít ideální místo na pivo. Stačí říct!"
             ],
-            searching: [
-                "🔍 Hledám hospody v tvém okolí... Moment!",
-                "⏳ Prohledávám databázi hospod poblíž tebe...",
-                "🗺️ Skenuju okolí... Hned to bude!"
+            search: [
+                "🔍 Prohledávám okolí...",
+                "⏳ Hledám hospody poblíž...",
+                "🗺️ Skenuju mapu..."
             ],
             found: [
-                "🎉 Skvělé! Našel jsem {count} hospod v okruhu {radius} km. Nejbližší je jen {distance} daleko!",
-                "✅ Hotovo! V okolí je {count} hospod. Ta nejbližší '{name}' je vzdálená {distance}.",
-                "🍻 Výborně! Mám pro tebe {count} tipů. Doporučuji '{name}' - je nejblíž!"
+                "🎉 Našel jsem {n} hospod! Nejbližší je {name} ({dist}).",
+                "✅ Mám {n} tipů. Doporučuju {name} - jen {dist} daleko!",
+                "🍻 Super! {n} hospod v dosahu. {name} je nejblíž ({dist})."
             ],
-            notFound: [
-                "😔 Bohužel jsem v okolí {radius} km nenašel žádnou hospodu. Zkus zvětšit radius.",
-                "🤔 V tomto okruhu nejsou žádné hospody. Co kdybys rozšířil hledání?",
-                "📍 Žádné výsledky. Možná jsi někde v přírodě? Zkus větší vzdálenost."
+            empty: [
+                "😔 V okolí {r} km nic není. Zkus větší radius.",
+                "🤔 Žádné hospody v tomto okruhu. Rozšiř hledání?",
+                "📍 Prázdno. Možná jsi mimo civilizaci? 😄"
             ],
-            garden: [
-                "🌿 Hledáš hospodu se zahrádkou? Skvělá volba za hezkého počasí! Spouštím vyhledávání...",
-                "☀️ Zahrádka je super! Najdu ti místa s venkovním posezením."
-            ],
-            cheap: [
-                "💰 Rozumím, hledáš hospodu s příznivými cenami. Bohužel nemám aktuální ceníky, ale menší hospody mimo centrum bývají levnější!",
-                "🍺 Levné pivo? To je dobrý cíl! Doporučuji zkusit lokální hospůdky."
-            ],
-            open: [
-                "🕐 Zjišťuji, které hospody mají právě otevřeno... Moment!",
-                "⏰ OK, hledám podniky otevřené v tuto chvíli."
-            ],
-            tips: [
-                "💡 Tip: Zkus použít hlasové vyhledávání - stačí kliknout na mikrofon!",
-                "💡 Tip: Můžeš si nastavit radius vyhledávání podle svých potřeb.",
-                "💡 Tip: Klikni na 'Navigovat' pro pěší trasu k hospodě."
-            ]
+            garden: "🌿 Hledám hospody se zahrádkou...",
+            open: "🕐 Zjišťuji co má otevřeno...",
+            tip: "💡 Tip: Zkus hlasové ovládání - klikni na mikrofon!"
         };
 
-        // Get random response
-        function getRandomResponse(type) {
-            const responses = aiResponses[type];
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
+        const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
         // Show AI response
-        function showAiResponse(text, typing = true) {
-            const container = document.getElementById('aiResponse');
-            const textEl = document.getElementById('aiResponseText');
-            
-            container.classList.add('active');
+        function showAI(text, typing = true) {
+            const el = document.getElementById('aiResponse');
+            const txt = document.getElementById('aiText');
+            el.classList.add('show');
             
             if (typing) {
-                textEl.innerHTML = '<div class="typing-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
-                setTimeout(() => {
-                    textEl.textContent = text;
-                }, 1000);
+                txt.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+                setTimeout(() => txt.textContent = text, 800);
             } else {
-                textEl.textContent = text;
+                txt.textContent = text;
             }
         }
 
-        // Handle chat keypress
-        function handleChatKeypress(event) {
-            if (event.key === 'Enter') {
-                sendChat();
-            }
-        }
-
-        // Send chat message
-        function sendChat() {
+        // Send message
+        function sendMessage() {
             const input = document.getElementById('chatInput');
-            const message = input.value.trim().toLowerCase();
-            
-            if (!message) return;
-            
+            const msg = input.value.trim().toLowerCase();
+            if (!msg) return;
             input.value = '';
-            
-            // Process message
-            if (message.includes('ahoj') || message.includes('čau') || message.includes('help') || message.includes('pomoc')) {
-                showAiResponse(getRandomResponse('greeting'));
-            } else if (message.includes('zahrad') || message.includes('venku') || message.includes('terasa')) {
-                showAiResponse(getRandomResponse('garden'));
-                setTimeout(() => findNearestPubs('outdoor'), 1500);
-            } else if (message.includes('levn') || message.includes('lacin') || message.includes('cena')) {
-                showAiResponse(getRandomResponse('cheap'));
-                setTimeout(() => findNearestPubs(), 1500);
-            } else if (message.includes('otevř') || message.includes('teď') || message.includes('nyní')) {
-                showAiResponse(getRandomResponse('open'));
-                setTimeout(() => findNearestPubs('open'), 1500);
-            } else if (message.includes('tip') || message.includes('rada')) {
-                showAiResponse(getRandomResponse('tips'));
+
+            if (msg.includes('ahoj') || msg.includes('help')) {
+                showAI(rand(responses.greet));
+            } else if (msg.includes('zahrad') || msg.includes('venku')) {
+                showAI(responses.garden);
+                setTimeout(() => findPubs('outdoor'), 1200);
+            } else if (msg.includes('otevř') || msg.includes('teď')) {
+                showAI(responses.open);
+                setTimeout(() => findPubs('open'), 1200);
+            } else if (msg.includes('tip')) {
+                showAI(responses.tip);
             } else {
-                showAiResponse(getRandomResponse('searching'));
-                setTimeout(() => findNearestPubs(), 1500);
+                showAI(rand(responses.search));
+                setTimeout(() => findPubs(), 1200);
             }
         }
 
-        // Quick search
-        function quickSearch(type) {
-            switch(type) {
-                case 'nejbližší':
-                    showAiResponse(getRandomResponse('searching'));
-                    setTimeout(() => findNearestPubs(), 1000);
-                    break;
-                case 'zahradka':
-                    showAiResponse(getRandomResponse('garden'));
-                    setTimeout(() => findNearestPubs('outdoor'), 1500);
-                    break;
-                case 'nejlevnejsi':
-                    showAiResponse(getRandomResponse('cheap'));
-                    setTimeout(() => findNearestPubs(), 1500);
-                    break;
-                case 'otevreno':
-                    showAiResponse(getRandomResponse('open'));
-                    setTimeout(() => findNearestPubs('open'), 1500);
-                    break;
+        // Quick actions
+        function quickAction(type) {
+            if (type === 'nearest') {
+                showAI(rand(responses.search));
+                setTimeout(() => findPubs(), 800);
+            } else if (type === 'garden') {
+                showAI(responses.garden);
+                setTimeout(() => findPubs('outdoor'), 1200);
+            } else if (type === 'open') {
+                showAI(responses.open);
+                setTimeout(() => findPubs('open'), 1200);
             }
         }
 
-        // Toggle voice input
-        function toggleVoiceInput() {
-            const btn = document.getElementById('voiceBtn');
+        // Toggle mic
+        function toggleMic() {
+            const btn = document.getElementById('micBtn');
             
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                showAiResponse('😔 Bohužel tvůj prohlížeč nepodporuje hlasové ovládání. Zkus Chrome nebo Edge.');
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                showAI('😔 Hlasové ovládání není podporováno v tomto prohlížeči.');
                 return;
             }
 
             if (isListening) {
-                stopListening();
+                recognition?.stop();
+                isListening = false;
+                btn.classList.remove('active');
                 return;
             }
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
             recognition.lang = 'cs-CZ';
             recognition.continuous = false;
-            recognition.interimResults = false;
 
             recognition.onstart = () => {
                 isListening = true;
-                btn.classList.add('listening');
-                showAiResponse('🎤 Poslouchám... Řekni co hledáš!', false);
+                btn.classList.add('active');
+                showAI('🎤 Poslouchám...', false);
             };
 
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('chatInput').value = transcript;
-                stopListening();
-                setTimeout(() => sendChat(), 500);
+            recognition.onresult = e => {
+                const text = e.results[0][0].transcript;
+                document.getElementById('chatInput').value = text;
+                recognition.stop();
+                setTimeout(sendMessage, 300);
             };
 
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                stopListening();
-                showAiResponse('😔 Nepodařilo se rozpoznat hlas. Zkus to znovu.');
+            recognition.onerror = () => {
+                showAI('😔 Nepodařilo se rozpoznat hlas.');
             };
 
             recognition.onend = () => {
-                stopListening();
+                isListening = false;
+                btn.classList.remove('active');
             };
 
             recognition.start();
         }
 
-        function stopListening() {
-            isListening = false;
-            document.getElementById('voiceBtn').classList.remove('listening');
-            if (recognition) {
-                recognition.stop();
-            }
-        }
-
-        // Update radius display
-        function updateRadiusDisplay() {
-            const value = document.getElementById('radiusSlider').value;
-            const km = (value / 1000).toFixed(1);
-            document.getElementById('radiusValue').textContent = km + ' km';
+        // Update radius
+        function updateRadius() {
+            const val = document.getElementById('radiusSlider').value;
+            document.getElementById('radiusVal').textContent = (val / 1000).toFixed(1) + ' km';
         }
 
         // Show status
-        function showStatus(type, title, text, showCoords = false) {
+        function showStatus(type, title, text, coords = null) {
             const card = document.getElementById('statusCard');
             const icon = document.getElementById('statusIcon');
-            const titleEl = document.getElementById('statusTitle');
-            const textEl = document.getElementById('statusText');
-            const coordsEl = document.getElementById('coordsDisplay');
-
-            card.classList.add('active');
-
+            
+            card.classList.add('show');
+            document.getElementById('statusTitle').textContent = title;
+            document.getElementById('statusText').innerHTML = text + (coords ? `<div class="coords">📍 ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}</div>` : '');
+            
             if (type === 'loading') {
                 icon.innerHTML = '<div class="spinner"></div>';
-            } else if (type === 'success') {
-                icon.textContent = '🍻';
-            } else if (type === 'error') {
-                icon.textContent = '😔';
-            }
-
-            titleEl.textContent = title;
-            textEl.textContent = text;
-
-            if (showCoords && userPosition) {
-                coordsEl.classList.remove('hidden');
-                coordsEl.textContent = `📍 ${userPosition.lat.toFixed(6)}, ${userPosition.lng.toFixed(6)}`;
             } else {
-                coordsEl.classList.add('hidden');
+                icon.innerHTML = `<span class="status-icon">${type === 'error' ? '😔' : '🍻'}</span>`;
             }
         }
 
         function hideStatus() {
-            document.getElementById('statusCard').classList.remove('active');
+            document.getElementById('statusCard').classList.remove('show');
         }
 
-        // Find nearest pubs
-        async function findNearestPubs(filter = null) {
+        // Find pubs
+        async function findPubs(filter = null) {
             const btn = document.getElementById('findBtn');
             const btnText = document.getElementById('findBtnText');
-            const resultsSection = document.getElementById('resultsSection');
-
+            
             btn.disabled = true;
             btnText.textContent = 'Hledám...';
-            resultsSection.classList.remove('active');
+            document.getElementById('results').classList.remove('show');
 
-            showStatus('loading', 'Zjišťuji polohu...', 'Prosím povol přístup k poloze');
+            showStatus('loading', 'Zjišťuji polohu...', 'Povol přístup k GPS');
 
             try {
-                userPosition = await getCurrentPosition();
-                
-                showStatus('loading', 'Hledám hospody...', 'Prohledávám okolí pomocí AI', true);
+                userPos = await getPosition();
+                showStatus('loading', 'Hledám hospody...', 'Prohledávám okolí', userPos);
 
                 const radius = parseInt(document.getElementById('radiusSlider').value);
-                pubsData = await searchPubs(userPosition.lat, userPosition.lng, radius, filter);
+                pubs = await searchPubs(userPos.lat, userPos.lng, radius, filter);
 
-                if (pubsData.length === 0) {
-                    const response = getRandomResponse('notFound').replace('{radius}', (radius/1000).toFixed(1));
-                    showAiResponse(response);
-                    showStatus('error', 'Žádné výsledky', `V okruhu ${(radius/1000).toFixed(1)} km nebyla nalezena žádná hospoda.`);
+                if (pubs.length === 0) {
+                    const msg = rand(responses.empty).replace('{r}', (radius/1000).toFixed(1));
+                    showAI(msg);
+                    showStatus('error', 'Nic nenalezeno', `V okruhu ${(radius/1000).toFixed(1)} km nejsou žádné hospody.`);
                 } else {
-                    const nearest = pubsData[0];
-                    let response = getRandomResponse('found')
-                        .replace('{count}', pubsData.length)
-                        .replace('{radius}', (radius/1000).toFixed(1))
-                        .replace('{distance}', formatDistance(nearest.distance))
-                        .replace('{name}', nearest.name);
-                    showAiResponse(response);
+                    const top = pubs[0];
+                    const msg = rand(responses.found)
+                        .replace('{n}', pubs.length)
+                        .replace('{name}', top.name)
+                        .replace('{dist}', formatDist(top.distance));
+                    showAI(msg);
                     hideStatus();
-                    displayResults(pubsData);
+                    renderResults();
                 }
-
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus('error', 'Chyba', error.message || 'Nepodařilo se najít hospody.');
-                showAiResponse('😔 ' + (error.message || 'Něco se pokazilo. Zkus to prosím znovu.'));
+            } catch (err) {
+                showStatus('error', 'Chyba', err.message);
+                showAI('😔 ' + err.message);
             } finally {
                 btn.disabled = false;
-                btnText.textContent = 'Najít hospody v okolí';
+                btnText.textContent = 'Najít hospody';
             }
         }
 
-        // Get current position
-        function getCurrentPosition() {
+        // Get position
+        function getPosition() {
             return new Promise((resolve, reject) => {
                 if (!navigator.geolocation) {
-                    reject(new Error('Tvůj prohlížeč nepodporuje geolokaci'));
+                    reject(new Error('Geolokace není podporována'));
                     return;
                 }
-
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        resolve({
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        });
+                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    err => {
+                        const msgs = {
+                            1: 'Přístup k poloze byl zamítnut',
+                            2: 'Poloha není dostupná',
+                            3: 'Časový limit vypršel'
+                        };
+                        reject(new Error(msgs[err.code] || 'Chyba polohy'));
                     },
-                    (error) => {
-                        switch (error.code) {
-                            case error.PERMISSION_DENIED:
-                                reject(new Error('Přístup k poloze byl zamítnut. Povol prosím geolokaci.'));
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                reject(new Error('Informace o poloze nejsou dostupné.'));
-                                break;
-                            case error.TIMEOUT:
-                                reject(new Error('Vypršel časový limit pro získání polohy.'));
-                                break;
-                            default:
-                                reject(new Error('Nepodařilo se získat polohu.'));
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 15000 }
                 );
             });
         }
 
-        // Search pubs using Overpass API
-        async function searchPubs(lat, lng, radius, filter = null) {
-            let amenityFilter = '["amenity"~"pub|bar|biergarten"]';
-            
+        // Search pubs via Overpass
+        async function searchPubs(lat, lng, radius, filter) {
             const query = `
                 [out:json][timeout:25];
                 (
-                    node${amenityFilter}(around:${radius},${lat},${lng});
-                    way${amenityFilter}(around:${radius},${lat},${lng});
+                    node["amenity"~"pub|bar|biergarten"](around:${radius},${lat},${lng});
+                    way["amenity"~"pub|bar|biergarten"](around:${radius},${lat},${lng});
                 );
                 out center;
             `;
 
-            const response = await fetch('https://overpass-api.de/api/interpreter', {
+            const res = await fetch('https://overpass-api.de/api/interpreter', {
                 method: 'POST',
                 body: query
             });
 
-            if (!response.ok) {
-                throw new Error('Nepodařilo se načíst data');
-            }
+            if (!res.ok) throw new Error('Chyba načítání dat');
 
-            const data = await response.json();
+            const data = await res.json();
             
-            let pubs = data.elements.map(element => {
-                const pubLat = element.lat || element.center?.lat;
-                const pubLng = element.lon || element.center?.lon;
-                const tags = element.tags || {};
-
+            let results = data.elements.map(el => {
+                const t = el.tags || {};
+                const pLat = el.lat || el.center?.lat;
+                const pLng = el.lon || el.center?.lon;
+                
                 return {
-                    id: element.id,
-                    name: tags.name || 'Hospoda bez názvu',
-                    lat: pubLat,
-                    lng: pubLng,
-                    address: formatAddress(tags),
-                    type: getTypeLabel(tags.amenity),
-                    phone: tags.phone || tags['contact:phone'] || null,
-                    website: tags.website || tags['contact:website'] || null,
-                    openingHours: tags.opening_hours || null,
-                    cuisine: tags.cuisine || null,
-                    wheelchair: tags.wheelchair || null,
-                    outdoor: tags.outdoor_seating === 'yes' || tags.beer_garden === 'yes',
-                    distance: calculateDistance(lat, lng, pubLat, pubLng),
-                    aiRecommendation: generateAiRecommendation(tags)
+                    id: el.id,
+                    name: t.name || 'Neznámá hospoda',
+                    lat: pLat,
+                    lng: pLng,
+                    address: formatAddr(t),
+                    type: { pub: 'Hospoda', bar: 'Bar', biergarten: 'Pivní zahrada' }[t.amenity] || 'Podnik',
+                    phone: t.phone || t['contact:phone'],
+                    hours: t.opening_hours,
+                    outdoor: t.outdoor_seating === 'yes' || t.beer_garden === 'yes',
+                    wheelchair: t.wheelchair === 'yes',
+                    distance: calcDist(lat, lng, pLat, pLng),
+                    aiTip: generateTip(t)
                 };
             });
 
-            // Apply filters
             if (filter === 'outdoor') {
-                pubs = pubs.filter(p => p.outdoor);
+                results = results.filter(p => p.outdoor);
             }
 
-            pubs.sort((a, b) => a.distance - b.distance);
-            return pubs;
+            return results.sort((a, b) => a.distance - b.distance);
         }
 
-        // Generate AI recommendation
-        function generateAiRecommendation(tags) {
-            const recommendations = [];
-            
-            if (tags.outdoor_seating === 'yes' || tags.beer_garden === 'yes') {
-                recommendations.push('Má venkovní posezení - skvělé za hezkého počasí! ☀️');
-            }
-            if (tags.wheelchair === 'yes') {
-                recommendations.push('Bezbariérový přístup pro všechny. ♿');
-            }
-            if (tags.cuisine) {
-                recommendations.push(`Nabízí ${tags.cuisine} kuchyni. 🍽️`);
-            }
-            if (tags.opening_hours && tags.opening_hours.includes('24')) {
-                recommendations.push('Otevřeno nonstop! 🌙');
-            }
-            
-            if (recommendations.length === 0) {
-                const generic = [
-                    'Oblíbené místo mezi místními. 👍',
-                    'Stojí za návštěvu! 🍺',
-                    'Klasická hospoda s dobrou atmosférou. 🏠',
-                    'Dobrá volba na posezení s přáteli. 👥'
-                ];
-                recommendations.push(generic[Math.floor(Math.random() * generic.length)]);
-            }
-            
-            return recommendations[0];
-        }
-
-        function formatAddress(tags) {
+        function formatAddr(t) {
             const parts = [];
-            if (tags['addr:street']) {
-                let street = tags['addr:street'];
-                if (tags['addr:housenumber']) {
-                    street += ' ' + tags['addr:housenumber'];
-                }
-                parts.push(street);
+            if (t['addr:street']) {
+                parts.push(t['addr:street'] + (t['addr:housenumber'] ? ' ' + t['addr:housenumber'] : ''));
             }
-            if (tags['addr:city']) {
-                parts.push(tags['addr:city']);
-            }
-            return parts.length > 0 ? parts.join(', ') : 'Adresa neuvedena';
+            if (t['addr:city']) parts.push(t['addr:city']);
+            return parts.join(', ') || 'Adresa neznámá';
         }
 
-        function getTypeLabel(amenity) {
-            const labels = {
-                'pub': 'Hospoda',
-                'bar': 'Bar',
-                'biergarten': 'Pivní zahrada'
-            };
-            return labels[amenity] || 'Podnik';
-        }
-
-        function calculateDistance(lat1, lng1, lat2, lng2) {
+        function calcDist(lat1, lng1, lat2, lng2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function formatDistance(km) {
-            if (km < 1) {
-                return Math.round(km * 1000) + ' m';
-            }
-            return km.toFixed(1) + ' km';
+        function formatDist(km) {
+            return km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km';
         }
 
-        // Display results
-        function displayResults(pubs) {
-            const section = document.getElementById('resultsSection');
+        function generateTip(t) {
+            if (t.outdoor_seating === 'yes') return 'Má venkovní posezení - super za hezkého počasí! ☀️';
+            if (t.wheelchair === 'yes') return 'Bezbariérový přístup. ♿';
+            if (t.cuisine) return `Nabízí ${t.cuisine} jídlo. 🍽️`;
+            const tips = [
+                'Oblíbené místo místních. 👍',
+                'Klasická hospoda s dobrou náladou. 🏠',
+                'Stojí za návštěvu! 🍺'
+            ];
+            return rand(tips);
+        }
+
+        // Render results
+        function renderResults() {
+            const container = document.getElementById('results');
             const list = document.getElementById('resultsList');
-            const count = document.getElementById('resultsCount');
+            
+            document.getElementById('resultsBadge').textContent = pubs.length + ' hospod';
+            container.classList.add('show');
 
-            count.textContent = pubs.length;
-            section.classList.add('active');
-
-            let html = '';
-            pubs.forEach((pub, index) => {
-                const isNearest = index === 0;
-                const tags = [];
-
-                if (pub.type) tags.push(pub.type);
+            list.innerHTML = pubs.map((pub, i) => {
+                const isTop = i === 0;
+                const tags = [pub.type];
                 if (pub.outdoor) tags.push('Zahrádka');
-                if (pub.wheelchair === 'yes') tags.push('Bezbariérový');
+                if (pub.wheelchair) tags.push('Bezbariérový');
 
-                html += `
-                    <div class="pub-card ${isNearest ? 'nearest' : ''}">
-                        <div class="pub-header">
-                            <span class="pub-rank">${index + 1}</span>
-                            <div class="pub-info">
+                return `
+                    <div class="pub-card ${isTop ? 'top' : ''}">
+                        <div class="pub-top">
+                            <span class="pub-rank">${i + 1}</span>
+                            <div class="pub-main">
                                 <div class="pub-name">
-                                    ${escapeHtml(pub.name)}
-                                    ${isNearest ? '<span class="nearest-badge">Nejbližší</span>' : ''}
+                                    ${esc(pub.name)}
+                                    ${isTop ? '<span class="top-badge">Nejbližší</span>' : ''}
                                 </div>
                                 <div class="pub-address">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    </svg>
-                                    ${escapeHtml(pub.address)}
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                    ${esc(pub.address)}
                                 </div>
                             </div>
-                            <div class="pub-distance">
-                                <div class="distance-value">${formatDistance(pub.distance).split(' ')[0]}</div>
-                                <div class="distance-unit">${formatDistance(pub.distance).split(' ')[1]}</div>
+                            <div class="pub-dist">
+                                <div class="dist-value">${formatDist(pub.distance).split(' ')[0]}</div>
+                                <div class="dist-unit">${formatDist(pub.distance).split(' ')[1]}</div>
                             </div>
                         </div>
 
-                        <div class="ai-recommendation">
-                            <div class="ai-recommendation-icon">🤖</div>
-                            <div class="ai-recommendation-text">${escapeHtml(pub.aiRecommendation)}</div>
+                        <div class="ai-tip">
+                            <span class="ai-tip-icon">🤖</span>
+                            <span class="ai-tip-text">${esc(pub.aiTip)}</span>
                         </div>
 
-                        ${pub.phone || pub.openingHours ? `
-                        <div class="pub-details">
-                            ${pub.phone ? `
-                            <div class="detail-item">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                </svg>
-                                <a href="tel:${pub.phone}">${escapeHtml(pub.phone)}</a>
-                            </div>
-                            ` : ''}
-                            ${pub.openingHours ? `
-                            <div class="detail-item">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                ${escapeHtml(pub.openingHours)}
-                            </div>
-                            ` : ''}
+                        ${pub.phone || pub.hours ? `
+                        <div class="pub-meta">
+                            ${pub.phone ? `<div class="meta-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg><a href="tel:${pub.phone}">${esc(pub.phone)}</a></div>` : ''}
+                            ${pub.hours ? `<div class="meta-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(pub.hours)}</div>` : ''}
                         </div>
                         ` : ''}
 
-                        ${tags.length > 0 ? `
                         <div class="pub-tags">
-                            ${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                            ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}
                         </div>
-                        ` : ''}
 
                         <div class="pub-actions">
-                            <button class="action-btn map-btn" onclick="showOnMap(${index})">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                </svg>
+                            <button class="action-btn map-btn" onclick="showMap(${i})">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
                                 Mapa
                             </button>
-                            <button class="action-btn nav-btn" onclick="navigate(${index})">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                </svg>
+                            <button class="action-btn nav-btn" onclick="navigate(${i})">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                                 Navigovat
                             </button>
                         </div>
                     </div>
                 `;
-            });
-
-            list.innerHTML = html;
+            }).join('');
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
         }
 
-        // Map functions
-        function showOnMap(index) {
-            currentPub = pubsData[index];
+        // Map
+        function showMap(i) {
+            currentPub = pubs[i];
             document.getElementById('modalTitle').textContent = currentPub.name;
-            document.getElementById('mapModal').classList.add('active');
+            document.getElementById('modal').classList.add('show');
 
             setTimeout(() => {
                 if (!map) {
-                    map = L.map('map', {
-                        zoomControl: true
-                    }).setView([currentPub.lat, currentPub.lng], 16);
-                    
+                    map = L.map('map').setView([currentPub.lat, currentPub.lng], 16);
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+                        attribution: '© OSM © CARTO'
                     }).addTo(map);
                 } else {
                     map.setView([currentPub.lat, currentPub.lng], 16);
                 }
 
-                map.eachLayer(layer => {
-                    if (layer instanceof L.Marker) {
-                        map.removeLayer(layer);
-                    }
-                });
+                map.eachLayer(l => { if (l instanceof L.Marker) map.removeLayer(l); });
 
                 const pubIcon = L.divIcon({
-                    html: '<div style="background: linear-gradient(135deg, #f59e0b, #8b5cf6); width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">🍺</div>',
-                    iconSize: [40, 40],
+                    html: '<div style="background:linear-gradient(135deg,#f97316,#a855f7);width:36px;height:36px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">🍺</div>',
+                    iconSize: [36, 36],
                     className: ''
                 });
-                L.marker([currentPub.lat, currentPub.lng], { icon: pubIcon })
-                    .addTo(map)
-                    .bindPopup(`<b>${currentPub.name}</b><br>${currentPub.address}`)
-                    .openPopup();
+                L.marker([currentPub.lat, currentPub.lng], { icon: pubIcon }).addTo(map)
+                    .bindPopup(`<b>${currentPub.name}</b><br>${currentPub.address}`).openPopup();
 
-                if (userPosition) {
+                if (userPos) {
                     const userIcon = L.divIcon({
-                        html: '<div style="background: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
-                        iconSize: [16, 16],
+                        html: '<div style="background:#3b82f6;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [14, 14],
                         className: ''
                     });
-                    L.marker([userPosition.lat, userPosition.lng], { icon: userIcon })
-                        .addTo(map)
-                        .bindPopup('Tvoje poloha');
+                    L.marker([userPos.lat, userPos.lng], { icon: userIcon }).addTo(map).bindPopup('Ty');
                 }
 
                 map.invalidateSize();
             }, 100);
         }
 
-        function navigate(index) {
-            const pub = pubsData[index];
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${pub.lat},${pub.lng}&travelmode=walking`;
-            window.open(url, '_blank');
+        function navigate(i) {
+            const p = pubs[i];
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`, '_blank');
         }
 
-        function navigateFromModal() {
-            if (currentPub) {
-                navigate(pubsData.indexOf(currentPub));
-            }
+        function navFromModal() {
+            if (currentPub) navigate(pubs.indexOf(currentPub));
         }
 
         function closeModal() {
-            document.getElementById('mapModal').classList.remove('active');
+            document.getElementById('modal').classList.remove('show');
         }
 
-        document.getElementById('mapModal').addEventListener('click', (e) => {
-            if (e.target.id === 'mapModal') {
-                closeModal();
-            }
-        });
+        document.getElementById('modal').onclick = e => {
+            if (e.target.id === 'modal') closeModal();
+        };
 
-        // Service Worker
+        // Init
+        updateRadius();
+        setTimeout(() => showAI(rand(responses.greet)), 600);
+
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => {
-                    console.log('SW registration failed:', err);
-                });
-            });
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
         }
-
-        // Initialize
-        updateRadiusDisplay();
-        
-        // Show greeting after a short delay
-        setTimeout(() => {
-            showAiResponse(getRandomResponse('greeting'), true);
-        }, 500);
     </script>
 </body>
 </html>

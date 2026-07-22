@@ -1,64 +1,42 @@
-# 🍺 Hospoda AI - Chytrý vyhledávač hospod
+# 🍺 Hospoda AI
 
-Moderní webová aplikace s AI asistentem pro vyhledání nejbližší hospody v okolí.
+Moderní PWA aplikace s AI asistentem pro vyhledání nejbližší hospody.
 
-## ✨ Nové AI funkce
+## ✨ Funkce
 
-- **🤖 AI Asistent** - Konverzační rozhraní pro přirozené vyhledávání
-- **🎤 Hlasové ovládání** - Řekni co hledáš (Web Speech API)
-- **💡 Chytré doporučení** - AI generované tipy pro každou hospodu
-- **⚡ Quick Actions** - Rychlé filtry (nejbližší, se zahrádkou, levné pivo, otevřeno teď)
-- **🎨 Moderní dark UI** - Elegantní design s animacemi a glassmorphism efekty
+### AI Asistent
+- 🤖 Konverzační rozhraní v češtině
+- 🎤 Hlasové ovládání (Web Speech API)
+- ⚡ Quick action tlačítka
+- 💡 AI tipy pro každou hospodu
 
-## 🚀 Funkce
-
-### Vyhledávání
-- **Geolokace** - Automatické zjištění aktuální polohy
-- **OpenStreetMap** - Vyhledávání skutečných hospod přes Overpass API
-- **Filtry** - Hospody se zahrádkou, bezbariérové, atd.
-- **Nastavitelný radius** - 500m až 10km
-
-### Interakce
-- **Chat interface** - Napiš co hledáš přirozeným jazykem
-- **Hlasový vstup** - Podporuje češtinu
-- **Interaktivní mapa** - Dark theme Leaflet mapa
-- **Navigace** - Propojení s Google Maps
+### Vyhledávání  
+- 📍 GPS geolokace
+- 🗺️ OpenStreetMap data (Overpass API)
+- 🎚️ Nastavitelný radius 500m - 10km
+- 🏷️ Filtry: zahrádka, otevřeno
 
 ### Design
-- **Dark mode** - Elegantní tmavý design
-- **Animace** - Plynulé přechody a efekty
-- **Responzivní** - Optimalizováno pro mobily
-- **PWA** - Instalovatelná jako aplikace
+- 🌙 Elegantní dark mode
+- ✨ Animované gradient pozadí
+- 📱 Plně responzivní
+- 💾 PWA - offline podpora
 
-## 🛠️ Technologie
-
-- HTML5 + CSS3 (CSS Variables, Glassmorphism, Animations)
-- Vanilla JavaScript (ES6+)
-- Web Speech API (hlasové ovládání)
-- Geolocation API
-- Leaflet.js + CartoDB Dark tiles
-- Overpass API (OpenStreetMap)
-
-## 💬 AI Asistent umí
-
-Napiš nebo řekni:
-- "Ahoj" - přivítání
-- "Hospoda se zahrádkou" - filtr venkovního posezení
-- "Levné pivo" - tip na úsporné hospody
-- "Co je otevřeno teď" - aktuálně otevřené podniky
-- "Tip" - užitečné rady
-
-## 📱 Spuštění
+## 🚀 Spuštění
 
 ```bash
-# Python
-python -m http.server 8000
-
-# Node.js
 npx serve
-
-# Pak otevři http://localhost:8000
+# nebo
+python -m http.server 8000
 ```
+
+## 🛠️ Tech Stack
+
+- HTML5, CSS3, Vanilla JS
+- Inter font (Google Fonts)
+- Leaflet.js + CartoDB tiles
+- Overpass API
+- Web Speech API
 
 ## 📝 Licence
 
