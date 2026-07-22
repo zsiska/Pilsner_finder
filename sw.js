@@ -1,50 +1,28 @@
-const CACHE_NAME = 'pu-finder-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-];
+const CACHE = 'hospoda-ai-v3';
+const ASSETS = ['/', '/index.html', '/manifest.json'];
 
-// Install event
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET' || e.request.url.includes('overpass')) return;
+  e.respondWith(
+    fetch(e.request)
+      .then(r => {
+        caches.open(CACHE).then(c => c.put(e.request, r.clone()));
+        return r;
       })
+      .catch(() => caches.match(e.request))
   );
 });
 
-// Fetch event
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => 
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     )
   );
-});
-
-// Activate event
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+  self.clients.claim();
 });
