@@ -1246,8 +1246,14 @@
 
         async function search(lat, lng, radius, filter) {
             const q = `[out:json][timeout:25];(node["amenity"~"pub|bar|biergarten"](around:${radius},${lat},${lng});way["amenity"~"pub|bar|biergarten"](around:${radius},${lat},${lng}););out center;`;
-            const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q });
-            if (!res.ok) throw new Error('Chyba načítání');
+            const formData = new URLSearchParams();
+            formData.append('data', q);
+            const res = await fetch('https://overpass-api.de/api/interpreter', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData 
+            });
+            if (!res.ok) throw new Error('Chyba načítání (API nedostupné)');
             const data = await res.json();
             
             let results = data.elements.map(el => {
