@@ -1,42 +1,30 @@
 # 🍺 Hospoda AI
 
-Moderní PWA aplikace s AI asistentem pro vyhledání nejbližší hospody.
+Moderní PWA aplikace s AI asistentem pro vyhledání nejbližší hospody. Postaveno na nejnovějších AI/UX trendech 2026.
 
 ## ✨ Funkce
 
-### AI Asistent
-- 🤖 Konverzační rozhraní v češtině
-- 🎤 Hlasové ovládání (Web Speech API)
-- ⚡ Quick action tlačítka
-- 💡 AI tipy pro každou hospodu
+- **AI Asistent** - Konverzační rozhraní v češtině
+- **Hlasové ovládání** - Web Speech API
+- **Geolokace** - GPS vyhledávání
+- **OpenStreetMap** - Reálná data z Overpass API
+- **Dark Mode** - Elegantní černý design
+- **PWA** - Offline podpora, instalace
 
-### Vyhledávání  
-- 📍 GPS geolokace
-- 🗺️ OpenStreetMap data (Overpass API)
-- 🎚️ Nastavitelný radius 500m - 10km
-- 🏷️ Filtry: zahrádka, otevřeno
+## 🎨 Design
 
-### Design
-- 🌙 Elegantní dark mode
-- ✨ Animované gradient pozadí
-- 📱 Plně responzivní
-- 💾 PWA - offline podpora
+- Plus Jakarta Sans font
+- Ambient orb animace
+- Noise texture overlay
+- Glassmorphism efekty
+- Micro-interakce
+- Bento grid layout
 
 ## 🚀 Spuštění
 
 ```bash
 npx serve
-# nebo
-python -m http.server 8000
 ```
-
-## 🛠️ Tech Stack
-
-- HTML5, CSS3, Vanilla JS
-- Inter font (Google Fonts)
-- Leaflet.js + CartoDB tiles
-- Overpass API
-- Web Speech API
 
 ## 📝 Licence
 
