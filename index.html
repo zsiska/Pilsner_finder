@@ -1028,6 +1028,16 @@
                 <p class="hero-desc">AI ti pomůže najít nejlepší hospodu ve tvém okolí během pár sekund</p>
             </section>
 
+            <!-- Location debug -->
+            <div class="card location-card" id="locationCard" style="display:none; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 14px; font-weight: 600;">📍 Tvoje poloha</span>
+                    <button onclick="copyCoords()" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--gray-300); cursor: pointer;">Kopírovat</button>
+                </div>
+                <div id="locationInfo" style="font-family: monospace; font-size: 13px; color: var(--gray-400); background: var(--surface-2); padding: 12px; border-radius: 10px;"></div>
+                <a id="mapLink" href="#" target="_blank" style="display: block; margin-top: 10px; font-size: 13px; color: var(--blue); text-decoration: none;">🗺️ Ověřit na Google Maps</a>
+            </div>
+
             <div class="bento">
                 <div class="card ai-card">
                     <div class="ai-header">
@@ -1071,8 +1081,8 @@
                 <div class="card radius-card">
                     <span class="radius-label">Radius</span>
                     <div class="slider-wrap">
-                        <input type="range" class="slider" id="radius" min="500" max="10000" step="500" value="2000" oninput="updateRadius()">
-                        <div class="slider-val" id="radiusVal">2 km</div>
+                        <input type="range" class="slider" id="radius" min="500" max="15000" step="500" value="5000" oninput="updateRadius()">
+                        <div class="slider-val" id="radiusVal">5 km</div>
                     </div>
                 </div>
             </div>
@@ -1199,6 +1209,7 @@
 
             try {
                 pos = await getPos();
+                showLocation(pos);
                 showStatus('loading', 'Hledám hospody...', 'Analyzuji okolí', pos);
 
                 const r = parseInt(document.getElementById('radius').value);
@@ -1345,6 +1356,19 @@
         updateRadius();
         setTimeout(() => showAI(pick(AI.greet)), 500);
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+        function showLocation(coords) {
+            document.getElementById('locationCard').style.display = 'block';
+            document.getElementById('locationInfo').innerHTML = `Lat: ${coords.lat.toFixed(6)}<br>Lng: ${coords.lng.toFixed(6)}`;
+            document.getElementById('mapLink').href = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+        }
+
+        function copyCoords() {
+            if (pos) {
+                navigator.clipboard.writeText(`${pos.lat}, ${pos.lng}`);
+                showAI('📋 Souřadnice zkopírovány!', false);
+            }
+        }
     </script>
 </body>
 </html>
