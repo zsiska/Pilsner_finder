@@ -340,6 +340,39 @@
       font-size: 0.8125rem;
     }
 
+    .manual-card {
+      margin-top: 1.5rem;
+      padding: clamp(1.25rem, 4vw, 1.5rem);
+    }
+
+    .manual-textarea {
+      display: block;
+      width: 100%;
+      min-height: 9rem;
+      margin-top: 1rem;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--foreground);
+      font: inherit;
+      font-size: 1rem;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .manual-textarea:focus {
+      outline: 3px solid rgba(79, 70, 229, 0.18);
+      border-color: var(--primary);
+    }
+
+    .manual-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
     .actions {
       display: none;
       flex-wrap: wrap;
@@ -490,6 +523,16 @@
 
       <div id="errorBox" class="notice" role="alert"></div>
 
+      <section class="card manual-card" aria-labelledby="manual-title">
+        <h2 id="manual-title">Když zlobí český přepis</h2>
+        <p class="helper">Na iPhonu klepni do pole níže a použij mikrofon na české klávesnici. Text pak nech aplikací analyzovat.</p>
+        <textarea id="manualTranscript" class="manual-textarea" placeholder="Sem vlož nebo nadiktuj český text…"></textarea>
+        <div class="manual-actions">
+          <button id="analyzeManualButton" class="pill-button primary-action" type="button">Analyzovat český text</button>
+          <button id="clearManualButton" class="pill-button" type="button">Vymazat</button>
+        </div>
+      </section>
+
       <section id="audioCard" class="card result-card" aria-labelledby="audio-title">
         <div class="result-head">
           <h2 id="audio-title">Záznam</h2>
@@ -585,7 +628,10 @@
       emailLink: document.getElementById('emailLink'),
       shareButton: document.getElementById('shareButton'),
       fileCaptureButton: document.getElementById('fileCaptureButton'),
-      audioFileInput: document.getElementById('audioFileInput')
+      audioFileInput: document.getElementById('audioFileInput'),
+      manualTranscript: document.getElementById('manualTranscript'),
+      analyzeManualButton: document.getElementById('analyzeManualButton'),
+      clearManualButton: document.getElementById('clearManualButton')
     };
 
     function getMimeTypeCandidates() {
@@ -949,6 +995,27 @@
       setStatus('done');
     }
 
+    async function processManualTranscript() {
+      const transcript = els.manualTranscript.value.trim();
+      if (!transcript) {
+        showError('Nejdřív vlož nebo nadiktuj český text.');
+        return;
+      }
+
+      els.errorBox.textContent = '';
+      els.errorBox.classList.remove('show');
+      els.transcriptText.textContent = transcript;
+      els.transcriptCard.classList.add('show');
+      setStatus('analyzing', 'Analyzuji vložený český text…');
+
+      const analysis = await analyzeTranscript(transcript);
+      els.analysisText.textContent = analysis;
+      els.analysisCard.classList.add('show');
+      els.exportActions.classList.add('show');
+      updateEmailLink();
+      setStatus('done');
+    }
+
     async function analyzeTranscript(transcript) {
       try {
         const response = await fetch('/api/analyze', {
@@ -1078,6 +1145,13 @@
 
     els.fileCaptureButton.addEventListener('click', () => {
       startFileCaptureFallback('Nahraj zvuk přes systémový dialog iPhonu.');
+    });
+
+    els.analyzeManualButton.addEventListener('click', processManualTranscript);
+
+    els.clearManualButton.addEventListener('click', () => {
+      els.manualTranscript.value = '';
+      els.manualTranscript.focus();
     });
 
     els.audioFileInput.addEventListener('change', async event => {
