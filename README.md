@@ -1,28 +1,20 @@
-# 🍺 Hospoda AI
+# Diktafon CZ
 
-Moderní PWA aplikace s AI asistentem pro vyhledání nejbližší hospody.
+Statická PWA aplikace pro české hlasové diktování, přepis a analýzu obsahu.
 
-## ✨ Funkce
+## Funkce
 
-### AI Asistent
-- 🤖 Konverzační rozhraní v češtině
-- 🎤 Hlasové ovládání (Web Speech API)
-- ⚡ Quick action tlačítka
-- 💡 AI tipy pro každou hospodu
+- Nahrávání hlasu přes `MediaRecorder`
+- Živý časovač a pulzování podle hlasitosti mikrofonu
+- Wake Lock a tichý audio loop pro lepší běh na pozadí
+- Přepis přes `/api/transcribe`, s fallbackem na české Web Speech rozpoznávání v podporovaných prohlížečích
+- Analýza přes `/api/analyze`, s lokální záložní analýzou ve statické verzi
+- Kopírování přepisu i analýzy
+- Export přepisu a analýzy do e-mailu ve formátu Markdown
+- Sdílení odkazu na aplikaci
+- PWA manifest a offline cache základních souborů
 
-### Vyhledávání  
-- 📍 GPS geolokace
-- 🗺️ OpenStreetMap data (Overpass API)
-- 🎚️ Nastavitelný radius 500m - 10km
-- 🏷️ Filtry: zahrádka, otevřeno
-
-### Design
-- 🌙 Elegantní dark mode
-- ✨ Animované gradient pozadí
-- 📱 Plně responzivní
-- 💾 PWA - offline podpora
-
-## 🚀 Spuštění
+## Spuštění
 
 ```bash
 npx serve
@@ -30,14 +22,9 @@ npx serve
 python -m http.server 8000
 ```
 
-## 🛠️ Tech Stack
+Pro plnohodnotný serverový přepis a AI analýzu doplň endpointy:
 
-- HTML5, CSS3, Vanilla JS
-- Inter font (Google Fonts)
-- Leaflet.js + CartoDB tiles
-- Overpass API
-- Web Speech API
+- `POST /api/transcribe` s polem formuláře `file`, odpověď `{ "text": "..." }`
+- `POST /api/analyze` s JSON `{ "transcript": "..." }`, odpověď `{ "analysis": "..." }`
 
-## 📝 Licence
-
-MIT
+Bez těchto endpointů aplikace využije dostupné prohlížečové rozpoznávání řeči a lokální textovou analýzu.
