@@ -319,6 +319,18 @@
       overflow-wrap: anywhere;
     }
 
+    .audio-player {
+      display: block;
+      width: 100%;
+      margin-top: 0.75rem;
+    }
+
+    .helper {
+      margin: 0.75rem 0 0;
+      color: var(--muted-foreground);
+      font-size: 0.8125rem;
+    }
+
     .actions {
       display: none;
       flex-wrap: wrap;
@@ -465,6 +477,15 @@
 
       <div id="errorBox" class="notice" role="alert"></div>
 
+      <section id="audioCard" class="card result-card" aria-labelledby="audio-title">
+        <div class="result-head">
+          <h2 id="audio-title">Záznam</h2>
+          <a id="downloadAudio" class="copy-button" href="#" download="diktafon-cz.webm">Stáhnout</a>
+        </div>
+        <audio id="audioPreview" class="audio-player" controls></audio>
+        <p class="helper">Pokud na iPhonu neproběhne přepis, záznam je stále dostupný tady k přehrání nebo stažení.</p>
+      </section>
+
       <section id="transcriptCard" class="card result-card" aria-labelledby="transcript-title">
         <div class="result-head">
           <h2 id="transcript-title">Přepis 1:1</h2>
@@ -508,6 +529,8 @@
     </div>
   </main>
 
+  <input id="audioFileInput" type="file" accept="audio/*" capture="microphone" hidden>
+
   <script>
     const SILENT_AUDIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
     const state = {
@@ -525,7 +548,8 @@
       wakeLock: null,
       silentAudio: null,
       recognition: null,
-      recognitionText: ''
+      recognitionText: '',
+      recordingUrl: ''
     };
 
     const els = {
@@ -537,17 +561,21 @@
       statusText: document.getElementById('statusText'),
       processing: document.getElementById('processing'),
       errorBox: document.getElementById('errorBox'),
+      audioCard: document.getElementById('audioCard'),
+      audioPreview: document.getElementById('audioPreview'),
+      downloadAudio: document.getElementById('downloadAudio'),
       transcriptCard: document.getElementById('transcriptCard'),
       transcriptText: document.getElementById('transcriptText'),
       analysisCard: document.getElementById('analysisCard'),
       analysisText: document.getElementById('analysisText'),
       exportActions: document.getElementById('exportActions'),
       emailLink: document.getElementById('emailLink'),
-      shareButton: document.getElementById('shareButton')
+      shareButton: document.getElementById('shareButton'),
+      audioFileInput: document.getElementById('audioFileInput')
     };
 
-    function getSupportedMimeType() {
-      const types = [
+    function getMimeTypeCandidates() {
+      return [
         'audio/webm;codecs=opus',
         'audio/webm',
         'audio/mp4;codecs=mp4a.40.2',
@@ -555,8 +583,31 @@
         'audio/aac',
         'audio/ogg;codecs=opus'
       ];
+    }
+
+    function getSupportedMimeType() {
       if (typeof MediaRecorder === 'undefined') return '';
-      return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+      return getMimeTypeCandidates().find(type => MediaRecorder.isTypeSupported(type)) || '';
+    }
+
+    function createMediaRecorder(stream) {
+      if (typeof MediaRecorder === 'undefined') {
+        throw new Error('MediaRecorder is not supported');
+      }
+
+      const candidates = getMimeTypeCandidates().filter(type => MediaRecorder.isTypeSupported(type));
+      candidates.push('');
+
+      for (const mimeType of candidates) {
+        try {
+          const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+          return { recorder, mimeType: mimeType || recorder.mimeType || 'audio/webm' };
+        } catch (error) {
+          console.info(`MediaRecorder failed for ${mimeType || 'default'}; trying next option.`, error);
+        }
+      }
+
+      throw new Error('No usable MediaRecorder MIME type');
     }
 
     function extensionForMimeType(type) {
@@ -598,10 +649,15 @@
 
     function resetOutput() {
       state.recognitionText = '';
+      if (state.recordingUrl) URL.revokeObjectURL(state.recordingUrl);
+      state.recordingUrl = '';
       els.errorBox.textContent = '';
       els.errorBox.classList.remove('show');
+      els.audioPreview.removeAttribute('src');
+      els.downloadAudio.removeAttribute('href');
       els.transcriptText.textContent = '';
       els.analysisText.textContent = '';
+      els.audioCard.classList.remove('show');
       els.transcriptCard.classList.remove('show');
       els.analysisCard.classList.remove('show');
       els.exportActions.classList.remove('show');
@@ -743,10 +799,27 @@
       await releaseWakeLock();
     }
 
+    function startFileCaptureFallback(message) {
+      resetOutput();
+      setStatus('idle', message || 'Tento prohlížeč použije systémové nahrání zvuku.');
+      els.audioFileInput.value = '';
+      els.audioFileInput.click();
+    }
+
     async function startRecording() {
       resetOutput();
-      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-        showError('Tento prohlížeč nepodporuje nahrávání zvuku.');
+      if (!window.isSecureContext) {
+        showError('Nahrávání mikrofonu vyžaduje HTTPS. Otevři aplikaci přes zabezpečenou URL.');
+        return;
+      }
+
+      if (typeof MediaRecorder === 'undefined') {
+        startFileCaptureFallback('Safari na tomto iPhonu nepodporuje přímé nahrávání v prohlížeči. Nahraj zvuk přes systémový dialog.');
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        startFileCaptureFallback('Prohlížeč nepovolil přímý mikrofon. Nahraj zvuk přes systémový dialog.');
         return;
       }
 
@@ -760,11 +833,10 @@
         });
 
         state.stream = stream;
-        state.mimeType = getSupportedMimeType();
+        const media = createMediaRecorder(stream);
+        state.mediaRecorder = media.recorder;
+        state.mimeType = media.mimeType || getSupportedMimeType();
         state.chunks = [];
-        state.mediaRecorder = state.mimeType
-          ? new MediaRecorder(stream, { mimeType: state.mimeType })
-          : new MediaRecorder(stream);
 
         state.mediaRecorder.ondataavailable = event => {
           if (event.data && event.data.size > 0) state.chunks.push(event.data);
@@ -827,6 +899,42 @@
       return fallbackText;
     }
 
+    function showRecordedAudio(blob, mimeType) {
+      if (state.recordingUrl) URL.revokeObjectURL(state.recordingUrl);
+      const url = URL.createObjectURL(blob);
+      state.recordingUrl = url;
+      els.audioPreview.src = url;
+      els.downloadAudio.href = url;
+      els.downloadAudio.download = `diktafon-cz.${extensionForMimeType(mimeType || blob.type || 'audio/webm')}`;
+      els.audioCard.classList.add('show');
+    }
+
+    async function processRecordedAudio(blob, mimeType) {
+      if (!blob || blob.size < 2048) {
+        showError('Záznam je příliš krátký. Zkuste diktovat déle.');
+        return;
+      }
+
+      showRecordedAudio(blob, mimeType);
+      setStatus('transcribing');
+      const transcript = await transcribeAudio(blob, mimeType);
+      if (!transcript) {
+        showError('Záznam je uložený níže, ale přepis se nepodařil. Na iPhonu bez podpory českého rozpoznávání řeči je pro přepis potřeba serverový endpoint /api/transcribe.');
+        return;
+      }
+
+      els.transcriptText.textContent = transcript;
+      els.transcriptCard.classList.add('show');
+
+      setStatus('analyzing');
+      const analysis = await analyzeTranscript(transcript);
+      els.analysisText.textContent = analysis;
+      els.analysisCard.classList.add('show');
+      els.exportActions.classList.add('show');
+      updateEmailLink();
+      setStatus('done');
+    }
+
     async function analyzeTranscript(transcript) {
       try {
         const response = await fetch('/api/analyze', {
@@ -848,29 +956,7 @@
       const mimeType = state.mimeType || recorder?.mimeType || 'audio/webm';
       const blob = await stopMediaRecorder();
       await cleanupRecordingResources();
-
-      if (!blob || blob.size < 2048) {
-        showError('Záznam je příliš krátký. Zkuste diktovat déle.');
-        return;
-      }
-
-      setStatus('transcribing');
-      const transcript = await transcribeAudio(blob, mimeType);
-      if (!transcript) {
-        showError('Přepis je prázdný — nebyla rozpoznána žádná řeč. V prohlížečích bez českého rozpoznávání řeči je potřeba backend /api/transcribe.');
-        return;
-      }
-
-      els.transcriptText.textContent = transcript;
-      els.transcriptCard.classList.add('show');
-
-      setStatus('analyzing');
-      const analysis = await analyzeTranscript(transcript);
-      els.analysisText.textContent = analysis;
-      els.analysisCard.classList.add('show');
-      els.exportActions.classList.add('show');
-      updateEmailLink();
-      setStatus('done');
+      await processRecordedAudio(blob, mimeType);
     }
 
     function generateLocalAnalysis(text) {
@@ -975,6 +1061,12 @@
     });
 
     els.shareButton.addEventListener('click', shareApp);
+
+    els.audioFileInput.addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      await processRecordedAudio(file, file.type || 'audio/m4a');
+    });
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && state.status === 'recording' && !state.wakeLock) {
