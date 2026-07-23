@@ -597,6 +597,10 @@
       audioContext: null,
       analyser: null,
       source: null,
+      processor: null,
+      pcmChunks: [],
+      pcmSampleRate: 0,
+      recordingMode: '',
       rafId: null,
       timerId: null,
       startedAt: 0,
@@ -671,6 +675,7 @@
     }
 
     function extensionForMimeType(type) {
+      if (type.includes('wav')) return 'wav';
       if (type.includes('webm')) return 'webm';
       if (type.includes('mp4') || type.includes('aac')) return 'm4a';
       if (type.includes('ogg')) return 'ogg';
@@ -827,6 +832,58 @@
       state.rafId = requestAnimationFrame(draw);
     }
 
+    function startPcmRecorder() {
+      const bufferSize = 4096;
+      state.pcmChunks = [];
+      state.pcmSampleRate = state.audioContext.sampleRate;
+      state.processor = state.audioContext.createScriptProcessor(bufferSize, 1, 1);
+      state.processor.onaudioprocess = event => {
+        if (state.status !== 'recording') return;
+        const input = event.inputBuffer.getChannelData(0);
+        state.pcmChunks.push(new Float32Array(input));
+      };
+      state.source.connect(state.processor);
+      state.processor.connect(state.audioContext.destination);
+      state.recordingMode = 'pcm';
+      state.mimeType = 'audio/wav';
+    }
+
+    function writeString(view, offset, value) {
+      for (let i = 0; i < value.length; i += 1) {
+        view.setUint8(offset + i, value.charCodeAt(i));
+      }
+    }
+
+    function encodeWav(chunks, sampleRate) {
+      const length = chunks.reduce((total, chunk) => total + chunk.length, 0);
+      const buffer = new ArrayBuffer(44 + length * 2);
+      const view = new DataView(buffer);
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + length * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, length * 2, true);
+
+      let offset = 44;
+      for (const chunk of chunks) {
+        for (let i = 0; i < chunk.length; i += 1) {
+          const sample = Math.max(-1, Math.min(1, chunk[i]));
+          view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+          offset += 2;
+        }
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
     async function cleanupRecordingResources() {
       if (state.timerId) clearInterval(state.timerId);
       state.timerId = null;
@@ -842,6 +899,7 @@
       } catch (_) {}
 
       state.stream?.getTracks().forEach(track => track.stop());
+      state.processor?.disconnect();
       state.source?.disconnect();
       state.analyser?.disconnect();
       if (state.audioContext && state.audioContext.state !== 'closed') {
@@ -855,6 +913,10 @@
       state.audioContext = null;
       state.source = null;
       state.analyser = null;
+      state.processor = null;
+      state.pcmChunks = [];
+      state.pcmSampleRate = 0;
+      state.recordingMode = '';
       stopSpeechRecognition();
       await releaseWakeLock();
     }
@@ -873,15 +935,12 @@
         return;
       }
 
-      if (typeof MediaRecorder === 'undefined') {
-        startFileCaptureFallback('Safari na tomto iPhonu nepodporuje přímé nahrávání v prohlížeči. Nahraj zvuk přes systémový dialog.');
-        return;
-      }
-
       if (!navigator.mediaDevices?.getUserMedia) {
         startFileCaptureFallback('Prohlížeč nepovolil přímý mikrofon. Nahraj zvuk přes systémový dialog.');
         return;
       }
+
+      els.statusText.textContent = 'Žádám o přístup k mikrofonu…';
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -893,21 +952,29 @@
         });
 
         state.stream = stream;
-        const media = createMediaRecorder(stream);
-        state.mediaRecorder = media.recorder;
-        state.mimeType = media.mimeType || getSupportedMimeType();
         state.chunks = [];
 
-        state.mediaRecorder.ondataavailable = event => {
-          if (event.data && event.data.size > 0) state.chunks.push(event.data);
-        };
-        state.mediaRecorder.start(1000);
-
         state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        await state.audioContext.resume?.();
         state.source = state.audioContext.createMediaStreamSource(stream);
         state.analyser = state.audioContext.createAnalyser();
         state.analyser.fftSize = 512;
         state.source.connect(state.analyser);
+
+        try {
+          const media = createMediaRecorder(stream);
+          state.mediaRecorder = media.recorder;
+          state.mimeType = media.mimeType || getSupportedMimeType();
+          state.mediaRecorder.ondataavailable = event => {
+            if (event.data && event.data.size > 0) state.chunks.push(event.data);
+          };
+          state.mediaRecorder.start(1000);
+          state.recordingMode = 'media';
+        } catch (error) {
+          console.info('MediaRecorder unavailable; using Web Audio WAV fallback.', error);
+          startPcmRecorder();
+        }
+
         monitorAudioLevel();
 
         await requestWakeLock();
@@ -927,6 +994,10 @@
     }
 
     function stopMediaRecorder() {
+      if (state.recordingMode === 'pcm') {
+        return Promise.resolve(encodeWav(state.pcmChunks, state.pcmSampleRate || 44100));
+      }
+
       const recorder = state.mediaRecorder;
       const type = state.mimeType || recorder?.mimeType || 'audio/webm';
       return new Promise(resolve => {
