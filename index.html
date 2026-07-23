@@ -252,6 +252,15 @@
       text-align: center;
     }
 
+    .fallback-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      text-align: center;
+    }
+
     .notice {
       display: none;
       margin-top: 1.5rem;
@@ -473,6 +482,10 @@
           </div>
         </div>
         <p class="tip">Tip: nezavírej záložku prohlížeče. Nahrávání pokračuje i při zamčené obrazovce.</p>
+        <div class="fallback-actions">
+          <button id="fileCaptureButton" class="pill-button" type="button">Nahrát zvuk přes iPhone</button>
+          <p class="helper">Když hlavní mikrofon na Safari selže, použij toto tlačítko pro systémové nahrání zvuku.</p>
+        </div>
       </section>
 
       <div id="errorBox" class="notice" role="alert"></div>
@@ -571,6 +584,7 @@
       exportActions: document.getElementById('exportActions'),
       emailLink: document.getElementById('emailLink'),
       shareButton: document.getElementById('shareButton'),
+      fileCaptureButton: document.getElementById('fileCaptureButton'),
       audioFileInput: document.getElementById('audioFileInput')
     };
 
@@ -1061,6 +1075,10 @@
     });
 
     els.shareButton.addEventListener('click', shareApp);
+
+    els.fileCaptureButton.addEventListener('click', () => {
+      startFileCaptureFallback('Nahraj zvuk přes systémový dialog iPhonu.');
+    });
 
     els.audioFileInput.addEventListener('change', async event => {
       const file = event.target.files?.[0];
