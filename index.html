@@ -1163,9 +1163,24 @@
             else if (type === 'open') { showAI(AI.open); setTimeout(() => find('open'), 1000); }
         }
 
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
         function toggleMic() {
             const btn = document.getElementById('mic');
             const input = document.getElementById('input');
+            
+            // iOS Safari doesn't support Web Speech API properly
+            if (isIOS()) {
+                showAI('📱 **iPhone tip:** Hlasové ovládání v Safari nefunguje spolehlivě. Použij raději klávesnici nebo zkus diktování přímo v klávesnici (🎤 na klávesnici).', false);
+                
+                // Focus input so user can use iOS dictation
+                input.focus();
+                input.placeholder = 'Použij 🎤 na klávesnici...';
+                return;
+            }
             
             if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
                 showAI('😔 Hlasové ovládání není podporováno v tomto prohlížeči. Zkus Chrome.');
@@ -1229,6 +1244,11 @@
                 listening = false; 
                 btn.classList.remove('active');
                 input.placeholder = 'Napiš co hledáš...';
+                
+                // Check if we got any result
+                if (!input.value.trim()) {
+                    showAI('🤔 Přepis je prázdný. Zkus mluvit hlasitěji nebo použij klávesnici.', false);
+                }
             };
             
             try {
