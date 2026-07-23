@@ -1,28 +1,29 @@
-const CACHE = 'hospoda-ai-v3';
+const CACHE = 'diktafon-cz-v1';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET' || e.request.url.includes('overpass')) return;
-  e.respondWith(
-    fetch(e.request)
-      .then(r => {
-        caches.open(CACHE).then(c => c.put(e.request, r.clone()));
-        return r;
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
+        return response;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => caches.match(event.request))
   );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
   );
   self.clients.claim();
 });

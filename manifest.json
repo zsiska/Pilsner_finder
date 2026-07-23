@@ -1,26 +1,26 @@
 {
-  "name": "Hospoda AI - Najdi hospodu poblíž",
-  "short_name": "Hospoda AI",
-  "description": "AI asistent pro vyhledání nejbližší hospody",
+  "name": "Diktafon CZ — Přepis a AI analýza",
+  "short_name": "Diktafon CZ",
+  "description": "Nahraj diktát v češtině, získej 1:1 přepis a podrobnou AI analýzu obsahu.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23f97316'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect fill='url(%23g)' width='100' height='100' rx='22'/><text x='50' y='65' font-size='50' text-anchor='middle'>🍺</text></svg>",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f46e5'/%3E%3Cpath fill='white' d='M50 62a12 12 0 0 0 12-12V27a12 12 0 1 0-24 0v23a12 12 0 0 0 12 12Zm25-13a5 5 0 0 0-10 0 15 15 0 0 1-30 0 5 5 0 0 0-10 0 25 25 0 0 0 20 24.5V82a5 5 0 0 0 10 0v-8.5A25 25 0 0 0 75 49Z'/%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23f97316'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect fill='url(%23g)' width='100' height='100' rx='22'/><text x='50' y='65' font-size='50' text-anchor='middle'>🍺</text></svg>",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f46e5'/%3E%3Cpath fill='white' d='M50 62a12 12 0 0 0 12-12V27a12 12 0 1 0-24 0v23a12 12 0 0 0 12 12Zm25-13a5 5 0 0 0-10 0 15 15 0 0 1-30 0 5 5 0 0 0-10 0 25 25 0 0 0 20 24.5V82a5 5 0 0 0 10 0v-8.5A25 25 0 0 0 75 49Z'/%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["food", "lifestyle", "navigation"],
+  "categories": ["productivity", "utilities"],
   "lang": "cs-CZ"
 }
