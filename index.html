@@ -1165,20 +1165,79 @@
 
         function toggleMic() {
             const btn = document.getElementById('mic');
+            const input = document.getElementById('input');
+            
             if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-                showAI('😔 Hlasové ovládání není podporováno.');
+                showAI('😔 Hlasové ovládání není podporováno v tomto prohlížeči. Zkus Chrome.');
                 return;
             }
-            if (listening) { rec?.stop(); listening = false; btn.classList.remove('active'); return; }
+            
+            if (listening) { 
+                rec?.stop(); 
+                listening = false; 
+                btn.classList.remove('active'); 
+                return; 
+            }
             
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             rec = new SR();
             rec.lang = 'cs-CZ';
-            rec.onstart = () => { listening = true; btn.classList.add('active'); showAI('🎤 Poslouchám...', false); };
-            rec.onresult = e => { document.getElementById('input').value = e.results[0][0].transcript; rec.stop(); setTimeout(send, 300); };
-            rec.onerror = () => showAI('😔 Nepodařilo se rozpoznat.');
-            rec.onend = () => { listening = false; btn.classList.remove('active'); };
-            rec.start();
+            rec.continuous = false;
+            rec.interimResults = true;
+            rec.maxAlternatives = 1;
+            
+            rec.onstart = () => { 
+                listening = true; 
+                btn.classList.add('active'); 
+                input.value = '';
+                input.placeholder = '🎤 Mluv...';
+                showAI('🎤 Poslouchám... Mluv teď!', false); 
+            };
+            
+            rec.onresult = e => {
+                let transcript = '';
+                let isFinal = false;
+                
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    transcript += e.results[i][0].transcript;
+                    if (e.results[i].isFinal) {
+                        isFinal = true;
+                    }
+                }
+                
+                input.value = transcript;
+                
+                if (isFinal && transcript.trim()) {
+                    showAI(`✅ Rozpoznáno: "${transcript}"`, false);
+                    setTimeout(() => {
+                        send();
+                    }, 500);
+                }
+            };
+            
+            rec.onerror = (e) => {
+                console.error('Speech error:', e.error);
+                let msg = '😔 Chyba rozpoznávání.';
+                if (e.error === 'no-speech') msg = '🤔 Neslyšel jsem nic. Zkus to znovu.';
+                else if (e.error === 'audio-capture') msg = '🎤 Mikrofon není dostupný. Povol přístup.';
+                else if (e.error === 'not-allowed') msg = '⚠️ Přístup k mikrofonu zamítnut. Povol ho v nastavení.';
+                else if (e.error === 'network') msg = '📶 Chyba sítě. Zkontroluj připojení.';
+                showAI(msg, false);
+            };
+            
+            rec.onend = () => { 
+                listening = false; 
+                btn.classList.remove('active');
+                input.placeholder = 'Napiš co hledáš...';
+            };
+            
+            try {
+                rec.start();
+            } catch (err) {
+                showAI('😔 Nepodařilo se spustit mikrofon: ' + err.message, false);
+                listening = false;
+                btn.classList.remove('active');
+            }
         }
 
         function updateRadius() {
