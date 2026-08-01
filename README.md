@@ -1,28 +1,27 @@
-# 🍺 Hospoda AI
+# AI mody a lepsi zadani
 
-Moderní PWA aplikace s AI asistentem pro vyhledání nejbližší hospody.
+Prehledna staticka PWA stranka s katalogem modu, ktere lze psat na zacatek AI zadani.
+Obsahuje take prompt sablony, uzitecne formulace a kombinace modu pro ruzne situace.
 
-## ✨ Funkce
+## Funkce
 
-### AI Asistent
-- 🤖 Konverzační rozhraní v češtině
-- 🎤 Hlasové ovládání (Web Speech API)
-- ⚡ Quick action tlačítka
-- 💡 AI tipy pro každou hospodu
+### Katalog modu
+- Vyhledavani podle nazvu, popisu nebo kategorie
+- Filtry kategorii
+- Kopirovani modu jednim kliknutim
+- Dynamicke pocty modu, kategorii, frazi a sablon
 
-### Vyhledávání  
-- 📍 GPS geolokace
-- 🗺️ OpenStreetMap data (Overpass API)
-- 🎚️ Nastavitelný radius 500m - 10km
-- 🏷️ Filtry: zahrádka, otevřeno
+### Lepsi zadani
+- Vyrazy pro presnejsi prompty
+- Hotove sablony zadani
+- Silne kombinace modu pro rozhodovani, uceni, kritiku, kod i byznys
 
 ### Design
-- 🌙 Elegantní dark mode
-- ✨ Animované gradient pozadí
-- 📱 Plně responzivní
-- 💾 PWA - offline podpora
+- Dark mode
+- Responzivni layout pro mobil i desktop
+- Offline cache pres service worker
 
-## 🚀 Spuštění
+## Spusteni
 
 ```bash
 npx serve
@@ -30,14 +29,16 @@ npx serve
 python -m http.server 8000
 ```
 
-## 🛠️ Tech Stack
+Hlavni stranka je `index.html`. Stejny obsah je dostupny i pres `prompt-modes.html`.
 
-- HTML5, CSS3, Vanilla JS
-- Inter font (Google Fonts)
-- Leaflet.js + CartoDB tiles
-- Overpass API
-- Web Speech API
+## Tech stack
 
-## 📝 Licence
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Web App Manifest
+- Service Worker
+
+## Licence
 
 MIT
