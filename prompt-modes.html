@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI mody a lepsi zadani</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --panel: #18181b;
+      --panel-soft: #1f1f23;
+      --panel-hover: #27272a;
+      --border: #3f3f46;
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --quiet: #71717a;
+      --orange: #f97316;
+      --violet: #a855f7;
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --radius: 22px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --gradient: linear-gradient(135deg, #f97316 0%, #a855f7 55%, #38bdf8 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 34rem),
+        radial-gradient(circle at 80% 10%, rgba(168, 85, 247, 0.22), transparent 32rem),
+        radial-gradient(circle at 50% 70%, rgba(56, 189, 248, 0.12), transparent 30rem),
+        var(--bg);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(28px, 6vw, 72px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(24, 24, 27, 0.92), rgba(24, 24, 27, 0.7)),
+        rgba(24, 24, 27, 0.84);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -12% -45% 35%;
+      height: 320px;
+      border-radius: 999px;
+      background: var(--gradient);
+      opacity: 0.16;
+      filter: blur(38px);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 20px;
+      padding: 8px 14px;
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      border-radius: 999px;
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.12);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.12;
+    }
+
+    h1 {
+      max-width: 880px;
+      font-size: clamp(38px, 8vw, 82px);
+      letter-spacing: -0.07em;
+    }
+
+    .gradient-text {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lead {
+      max-width: 780px;
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2.2vw, 22px);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 12px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn.primary {
+      border: 0;
+      background: var(--gradient);
+      font-weight: 800;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+      background: rgba(24, 24, 27, 0.72);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 8px;
+      color: var(--quiet);
+      font-size: 13px;
+    }
+
+    .section {
+      margin-top: 54px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.04em;
+    }
+
+    .section-text {
+      max-width: 680px;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 12px;
+      padding: 14px;
+      margin-top: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 22px;
+      background: rgba(9, 9, 11, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+    }
+
+    .search {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: rgba(249, 115, 22, 0.8);
+      box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+    }
+
+    .chip.active,
+    .chip:hover {
+      color: var(--text);
+      border-color: rgba(249, 115, 22, 0.55);
+      background: rgba(249, 115, 22, 0.12);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 260px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+        var(--panel);
+      box-shadow: 0 18px 55px rgba(0, 0, 0, 0.2);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(168, 85, 247, 0.12), rgba(56, 189, 248, 0.18));
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .mode-name {
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .description {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .prompt {
+      margin-top: auto;
+      padding: 13px;
+      border: 1px dashed rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      color: #e4e4e7;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 14px;
+    }
+
+    .copy {
+      align-self: flex-start;
+      margin-top: 12px;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 12px;
+      color: #09090b;
+      background: #fafafa;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .copy.copied {
+      color: #052e16;
+      background: #86efac;
+    }
+
+    .quick-panels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .panel h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .phrase-list,
+    .template-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .phrase,
+    .template {
+      display: grid;
+      gap: 8px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .phrase strong,
+    .template strong {
+      color: #fff7ed;
+    }
+
+    .phrase span,
+    .template span {
+      color: var(--muted);
+    }
+
+    .template code,
+    .combo code {
+      display: block;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      color: #fef3c7;
+      background: rgba(0, 0, 0, 0.24);
+      white-space: pre-wrap;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .combos {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .combo {
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: var(--radius);
+      background: var(--panel-soft);
+    }
+
+    .footer-note {
+      margin-top: 44px;
+      padding: 22px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius);
+      color: #cffafe;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .stats,
+      .grid,
+      .quick-panels {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+        padding-top: 12px;
+      }
+
+      .hero {
+        border-radius: 24px;
+      }
+
+      .stats,
+      .grid,
+      .quick-panels,
+      .combos {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Prompt tahak pro zacatek konverzace</p>
+      <h1>AI mody a vyrazy pro <span class="gradient-text">lepsi zadani</span></h1>
+      <p class="lead">
+        Na zacatek promptu napis jeden nebo vice modu. AI pak prizpusobi styl odpovedi, hloubku,
+        format i miru kriticnosti. Nize najdes katalog modu, hotove kombinace a slovnik vet,
+        ktere z nejasneho zadani udelaji presny brief.
+      </p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#modes">Projit mody</a>
+        <a class="btn" href="#phrases">Vylepsit zadani</a>
+        <a class="btn" href="#templates">Pouzit sablonu</a>
+      </div>
+    </section>
+
+    <div class="stats" aria-label="Rychly prehled">
+      <div class="stat"><strong id="modeCount">0</strong><span>modu k pouziti</span></div>
+      <div class="stat"><strong>9</strong><span>kategorií podle situace</span></div>
+      <div class="stat"><strong>36</strong><span>frázi pro presnejsi prompt</span></div>
+      <div class="stat"><strong>12</strong><span>hotovych sablon zadani</span></div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Jak to pouzit</h2>
+          <p class="section-text">Nejlepsi vysledek dostanes, kdyz spojíš mod, kontext, cil a format vystupu.</p>
+        </div>
+      </div>
+      <div class="quick-panels">
+        <article class="panel">
+          <h3>1. Vyber mod</h3>
+          <p>Napriklad: <strong>Truth mode + Short mode</strong>. Mod urci ton, hloubku a styl odpovedi.</p>
+        </article>
+        <article class="panel">
+          <h3>2. Pridej kontext</h3>
+          <p>Napis, co delas, pro koho to je, co uz vis a co je omezeni. Kontext setri mnoho oprav.</p>
+        </article>
+        <article class="panel">
+          <h3>3. Urc vystup</h3>
+          <p>Rekni, jestli chces tabulku, checklist, email, kod, rozhodnuti, osnovu nebo konkretni kroky.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="modes">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Katalog modu</h2>
+          <p class="section-text">Hledej podle nazvu, popisu nebo kategorie. Tlacitko u karty zkopiruje kratky zacatek promptu.</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input class="search" id="searchInput" type="search" placeholder="Hledat: code review, business, pravda, kreativita..." aria-label="Hledat mody">
+        <div class="filters" id="filters" aria-label="Filtry kategorii"></div>
+      </div>
+
+      <div class="grid" id="modeGrid"></div>
+    </section>
+
+    <section class="section" id="phrases">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Vyrazy, ktere zlepsuji zadani</h2>
+          <p class="section-text">Tyto formulace pomahaji AI pochopit cíl, hranice a ocekavany vystup.</p>
+        </div>
+      </div>
+
+      <div class="phrase-list" id="phraseList"></div>
+    </section>
+
+    <section class="section" id="templates">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Hotove sablony promptu</h2>
+          <p class="section-text">Zkopiruj si strukturu a vypln hranate zavorky podle situace.</p>
+        </div>
+      </div>
+
+      <div class="template-list" id="templateList"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Silne kombinace modu</h2>
+          <p class="section-text">Kombinace jsou casto lepsi nez jeden mod, protoze oddeli styl, roli a format.</p>
+        </div>
+      </div>
+
+      <div class="combos">
+        <article class="combo">
+          <h3>Rychle rozhodnuti</h3>
+          <code>Decision mode + Truth mode + Checklist mode:
+Mam [situace]. Porovnej moznosti, rekni nejlepsi volbu a pridej rizika.</code>
+        </article>
+        <article class="combo">
+          <h3>Uceni od nuly</h3>
+          <code>Beginner mode + Teacher mode + Examples mode:
+Vysvetli mi [tema] jednoduse, s priklady a kratkym testem na konci.</code>
+        </article>
+        <article class="combo">
+          <h3>Kvalitni kritika</h3>
+          <code>Critic mode + Devil's advocate mode + No-fluff mode:
+Zhodnot [napad/text/kod]. Hledej slabiny, rizika a konkretni opravy.</code>
+        </article>
+        <article class="combo">
+          <h3>Prace s textem</h3>
+          <code>Rewrite mode + Tone mode + Clarity mode:
+Prepis text pro [publikum], ton [ton], zachovej vyznam a zkrat o 30 %.</code>
+        </article>
+        <article class="combo">
+          <h3>Kod a debugging</h3>
+          <code>Debug mode + Senior engineer mode + Step-by-step mode:
+Najdi pricinu chyby v [kod/log], navrhni opravu a pridej testy.</code>
+        </article>
+        <article class="combo">
+          <h3>Strategie a byznys</h3>
+          <code>Strategy mode + Business mode + Risk mode:
+Navrhni strategii pro [cil], priority, metriky, rizika a dalsi kroky.</code>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Tip: Pokud chces presnou odpoved, pridej vetu: „Kdyz chybi dulezite informace, nejdriv se zeptej
+      maximalne na 3 upresnujici otazky.“ Tim snizis pocet spatnych predpokladu.
+    </p>
+  </main>
+
+  <script>
+    const modes = [
+      ["Truth mode", "Primo oddeli fakta, nejistoty a odhady. Vhodne kdyz nechces lakovani naruzovo.", "Presnost", "Truth mode: odpovidej primo, rozlis fakta a predpoklady."],
+      ["Short mode", "Co nejkratsi odpoved bez dlouheho uvodu.", "Styl", "Short mode: odpovez strucne a jen k veci."],
+      ["Deep mode", "Jde do hloubky, vysvetli souvislosti, vyjimky a dusledky.", "Styl", "Deep mode: rozeber tema do hloubky vcetne souvislosti."],
+      ["No-fluff mode", "Bez omacky, frazi a motivacnich vet. Jen uzitecny obsah.", "Styl", "No-fluff mode: vynech omacku a napis jen podstatu."],
+      ["Beginner mode", "Vysvetluje jednoduse, pomalu a bez zbytecneho zargonu.", "Uceni", "Beginner mode: vysvetli to jako zacatecnikovi."],
+      ["Expert mode", "Predpoklada pokrocile znalosti a jde rovnou k technickym detailum.", "Uceni", "Expert mode: pouzij pokrocily jazyk a nevynech detaily."],
+      ["Teacher mode", "Uci systematicky, s priklady, analogiemi a kontrolnimi otazkami.", "Uceni", "Teacher mode: nauc me to krok za krokem s priklady."],
+      ["Socratic mode", "Vede te otazkami misto okamzite odpovedi.", "Uceni", "Socratic mode: naved me otazkami, nedavej hned reseni."],
+      ["Coach mode", "Pomaha ti zlepsit mysleni, rozhodovani nebo vykon.", "Uceni", "Coach mode: ved me jako kouc a ptej se na dulezite veci."],
+      ["Checklist mode", "Vystup formatuje jako seznam ukolu nebo kontrolnich bodu.", "Format", "Checklist mode: dej odpoved jako prakticky checklist."],
+      ["Table mode", "Porovnani, data nebo moznosti dava do prehledne tabulky.", "Format", "Table mode: usporadej odpoved do tabulky."],
+      ["Step-by-step mode", "Rozklada postup do jasnych kroku v logickem poradi.", "Format", "Step-by-step mode: ukaz postup po jednotlivych krocich."],
+      ["Decision mode", "Pomaha vybrat nejlepsi moznost a vysvetli proc.", "Rozhodovani", "Decision mode: porovnej moznosti a doporuc jednu volbu."],
+      ["Pros-cons mode", "Vyjmenuje vyhody, nevyhody a kompromisy.", "Rozhodovani", "Pros-cons mode: napis pro a proti kazde varianty."],
+      ["Risk mode", "Hleda rizika, slepa mista, zavislosti a co se muze pokazit.", "Rozhodovani", "Risk mode: identifikuj rizika a navrhni prevenci."],
+      ["Prioritization mode", "Razeni podle dopadu, narocnosti, naléhavosti nebo hodnoty.", "Rozhodovani", "Prioritization mode: serad kroky podle priority a duvodu."],
+      ["Strategy mode", "Resi cile, priority, paku, metriky a dlouhodobe dusledky.", "Byznys", "Strategy mode: navrhni strategii a hlavni priority."],
+      ["Business mode", "Premysli pres hodnotu, trh, naklady, marze a navratnost.", "Byznys", "Business mode: posud to z pohledu byznysu."],
+      ["Founder mode", "Pragmaticky pohled startup zakladatele: rychlost, validace, rizika.", "Byznys", "Founder mode: premyslej jako startup founder."],
+      ["Investor mode", "Hodnoti prilezitost pres trh, moat, tym, trakci a rizika.", "Byznys", "Investor mode: zhodnot to jako investor."],
+      ["Sales mode", "Pomaha formulovat nabidku, argumenty a odpovedi na namitky.", "Byznys", "Sales mode: vytvor prodejni argumentaci a namitky."],
+      ["Marketing mode", "Resi positioning, cilovku, sdeleni, kanaly a kampane.", "Byznys", "Marketing mode: navrhni marketingovy pristup."],
+      ["Brand mode", "Hlida ton znacky, identitu, zapamatovatelnost a konzistenci.", "Byznys", "Brand mode: zlepsi to z pohledu znacky."],
+      ["Critic mode", "Hleda chyby, slabiny a nesoulad. Vhodne pred odeslanim prace.", "Kritika", "Critic mode: zkritizuj to a navrhni opravy."],
+      ["Devil's advocate mode", "Zamerne oponuje a testuje, jestli napad obstojí.", "Kritika", "Devil's advocate mode: oponuj memu navrhu a testuj ho."],
+      ["Brutal honesty mode", "Velmi prima zpetna vazba bez urazek a zbytecne diplomacie.", "Kritika", "Brutal honesty mode: rekni mi to velmi primo, ale vecne."],
+      ["QA mode", "Kontroluje kvalitu, chyby, chybejici casti a edge cases.", "Kritika", "QA mode: zkontroluj kvalitu a najdi chyby."],
+      ["Red-team mode", "Utocne hleda zpusoby, jak system, plan nebo argument selze.", "Kritika", "Red-team mode: najdi nejslabsi mista a moznosti selhani."],
+      ["Fact-check mode", "Ověřuje tvrzeni, upozornuje na nejistoty a potrebu zdroju.", "Presnost", "Fact-check mode: over tvrzeni a oznac nejiste casti."],
+      ["Source mode", "Preferuje odkazy, citace, puvod dat a transparentni argumentaci.", "Presnost", "Source mode: uvadej zdroje nebo rekni, kdy je nemas."],
+      ["Assumption mode", "Vypise predpoklady, na kterych odpoved stoji.", "Presnost", "Assumption mode: nejdriv vypis sve predpoklady."],
+      ["Clarifying questions mode", "Nez odpovi, polozi par dulezitych doplnujicich otazek.", "Presnost", "Clarifying questions mode: pokud chybi informace, zeptej se."],
+      ["Research mode", "Mapuje tema, najde uhly pohledu, pojmy a dalsi kroky pro vyzkum.", "Presnost", "Research mode: udelej prehled tematu a co je potreba zjistit."],
+      ["Code review mode", "U kodu hleda bugy, regresi, bezpecnost, testy a udrzitelnost.", "Kod", "Code review mode: zkontroluj kod jako senior reviewer."],
+      ["Debug mode", "Systematicky hleda pricinu chyby podle symptomu, logu a hypotez.", "Kod", "Debug mode: pomoz najit pricinu chyby krok za krokem."],
+      ["Senior engineer mode", "Navrhuje reseni s ohledem na architekturu, testy a udrzbu.", "Kod", "Senior engineer mode: navrhni robustni technicke reseni."],
+      ["Refactor mode", "Zlepsuje strukturu kodu bez zmeny chovani.", "Kod", "Refactor mode: navrhni refaktor bez zmeny funkcnosti."],
+      ["Architecture mode", "Resi komponenty, hranice, datove toky a trade-offy.", "Kod", "Architecture mode: navrhni architekturu a trade-offy."],
+      ["Security mode", "Hleda zranitelnosti, rizika dat, autentizace a oprávneni.", "Kod", "Security mode: zhodnot bezpecnostni rizika."],
+      ["Test mode", "Navrhuje testy, scenare, edge cases a testovaci data.", "Kod", "Test mode: navrhni testy a edge cases."],
+      ["API design mode", "Navrhuje endpointy, kontrakty, chyby a verzovani.", "Kod", "API design mode: navrhni API kontrakt a priklady."],
+      ["Performance mode", "Hleda uzka hrdla, slozitost, cachovani a optimalizace.", "Kod", "Performance mode: zhodnot vykon a optimalizace."],
+      ["UX mode", "Hodnoti srozumitelnost, tok uzivatele, friction a pristupnost.", "Produkt", "UX mode: zlepsi uzivatelsky zazitek."],
+      ["Product manager mode", "Preklada potreby uzivatelu do priorit, scope a metrik.", "Produkt", "Product manager mode: navrhni produktove priority."],
+      ["MVP mode", "Zmensuje rozsah na nejmensi verzi, ktera overi hlavni hypotezu.", "Produkt", "MVP mode: osekni to na nejmensi smysluplnou verzi."],
+      ["User story mode", "Formuluje praci jako user stories a acceptance criteria.", "Produkt", "User story mode: napis user stories a akceptacni kriteria."],
+      ["Roadmap mode", "Rozdeli vizi na etapy, zavislosti a rozhodovaci body.", "Produkt", "Roadmap mode: navrhni roadmapu a milniky bez kalendarnich odhadu."],
+      ["Rewrite mode", "Prepisuje text jasneji, silneji nebo do jineho tonu.", "Text", "Rewrite mode: prepis text jasneji a lepe."],
+      ["Editor mode", "Upravuje strukturu, tok, opakovani, argumenty a styl.", "Text", "Editor mode: edituj text jako prisny editor."],
+      ["Tone mode", "Prizpusobi ton: formalni, lidsky, sebevedomy, pratelštější.", "Text", "Tone mode: uprav ton na [pozadovany ton]."],
+      ["Clarity mode", "Zjednodusuje slozite formulace a odstrani nejasnosti.", "Text", "Clarity mode: udelej text jasnejsi a srozumitelnejsi."],
+      ["Persuasive mode", "Zesili argumentaci, strukturu presvedcovani a call to action.", "Text", "Persuasive mode: udelej text presvedcivejsi."],
+      ["Email mode", "Tvori kratke, jasne a situacne vhodne emaily.", "Text", "Email mode: napis email pro [prijemce] s cilem [cil]."],
+      ["LinkedIn mode", "Upravuje text pro LinkedIn: hook, struktura, osobni pointa.", "Text", "LinkedIn mode: prepis to jako LinkedIn prispevek."],
+      ["Storytelling mode", "Prevede informace do pribehu s napetim, pointou a tokem.", "Text", "Storytelling mode: preved to do poutaveho pribehu."],
+      ["Creative mode", "Generuje vice originalnich variant a neobvyklych napadu.", "Kreativita", "Creative mode: navrhni vice originalnich variant."],
+      ["Brainstorm mode", "Rychle vytvori mnoho napadu bez okamzite kritiky.", "Kreativita", "Brainstorm mode: vygeneruj co nejvice napadu."],
+      ["Naming mode", "Navrhuje nazvy, slogany, domeny, varianty a vysvetleni.", "Kreativita", "Naming mode: navrhni nazvy pro [vec]."],
+      ["Analogy mode", "Vysvetli tema pomoci prirovnani a mentalnich modelu.", "Uceni", "Analogy mode: vysvetli to pres analogie."],
+      ["Examples mode", "Doplnuje odpoved konkretnimi priklady a protipriklady.", "Uceni", "Examples mode: pridej konkretni priklady a protipriklady."],
+      ["ELI5 mode", "Vysvetli jako petiletemu, ale bez ztraty hlavni pointy.", "Uceni", "ELI5 mode: vysvetli to uplne jednoduse."],
+      ["Interview mode", "Pripravuje otazky, odpovedi a simulaci pohovoru nebo rozhovoru.", "Produktivita", "Interview mode: simuluj pohovor a dej mi zpetnou vazbu."],
+      ["Negotiation mode", "Navrhuje vyjednavaci strategii, BATNA, ustupky a formulace.", "Produktivita", "Negotiation mode: priprav vyjednavaci strategii."],
+      ["Planner mode", "Rozdeli cil na konkretni kroky, poradi a zavislosti.", "Produktivita", "Planner mode: vytvor prakticky plan kroku."],
+      ["Productivity mode", "Zjednodusuje praci, odstraňuje zbytecnosti a nastavuje priority.", "Produktivita", "Productivity mode: zjednodus mi postup a priority."],
+      ["Meeting mode", "Tvori agendu, zapis, rozhodnuti a follow-up ukoly.", "Produktivita", "Meeting mode: priprav agendu nebo zapis ze schuzky."],
+      ["Learning plan mode", "Vytvari osnovu uceni, zdroje, cviceni a kontrolu pokroku.", "Uceni", "Learning plan mode: vytvor mi plan uceni pro [tema]."],
+      ["Exam mode", "Zkousi te z tematu, opravuje chyby a vysvetluje odpovedi.", "Uceni", "Exam mode: vyzkousej me z [tema]."],
+      ["Data analyst mode", "Hleda vzory, metriky, segmenty, anomalie a interpretaci dat.", "Analytika", "Data analyst mode: analyzuj data a vytahni zavery."],
+      ["Financial mode", "Premysli pres cisla, cashflow, scenare a citlivost.", "Analytika", "Financial mode: zhodnot to financne a udelej scenare."],
+      ["Legal caution mode", "Upozorni na pravni rizika a potrebu odbornika; nedela se za pravnika.", "Riziko", "Legal caution mode: upozorni na pravni rizika a co overit."],
+      ["Medical caution mode", "Bezpecne rozlisuji obecne info a nutnost lekarske konzultace.", "Riziko", "Medical caution mode: dej obecne info a upozorni na varovne signaly."],
+      ["Ethics mode", "Hodnoti dopady na lidi, ferovost, soukromi a zneuziti.", "Riziko", "Ethics mode: zhodnot eticke dopady a rizika."],
+      ["Localization mode", "Prizpusobi text kulture, jazyku, trhu a lokalnim zvyklostem.", "Text", "Localization mode: lokalizuj to pro [zeme/jazyk/publikum]."],
+      ["Concierge mode", "Chova se jako prakticky asistent: navrhne, zorganizira a shrne.", "Produktivita", "Concierge mode: pomoz mi to prakticky zaridit a zorganizovat."],
+      ["Prompt engineer mode", "Vylepsuje tvoje zadani, aby dalo presnejsi odpoved.", "Presnost", "Prompt engineer mode: prepis muj prompt, aby byl presnejsi."],
+      ["Constraint mode", "Pracuje striktne podle zadanych omezeni a upozorni, kdyz jsou v konfliktu.", "Presnost", "Constraint mode: dodrz omezeni a upozorni na konflikty."],
+      ["Output-only mode", "Vrati jen vysledek bez vysvetleni a uvodu.", "Format", "Output-only mode: vrat pouze finalni vystup bez komentare."],
+      ["Compare mode", "Srovna varianty podle stejnych kriterii.", "Rozhodovani", "Compare mode: porovnej varianty podle stejnych kriterii."],
+      ["Scenario mode", "Modeluje optimisticky, realisticky a pesimisticky scenar.", "Rozhodovani", "Scenario mode: vytvor tri scenare a jejich dusledky."],
+      ["Operations mode", "Resi procesy, odpovednosti, predavky, rizika a opakovatelnost.", "Byznys", "Operations mode: navrhni provozni proces a odpovednosti."],
+      ["Customer support mode", "Tvori odpovedi zakaznikum empaticky, jasne a vecne.", "Text", "Customer support mode: napis odpoved zakaznikovi."],
+      ["Recruiter mode", "Pomaha s pracovnimi inzeraty, CV, pohovory a hodnocenim kandidatu.", "Produktivita", "Recruiter mode: zhodnot kandidata nebo priprav inzerat."],
+      ["Documentation mode", "Tvori navody, README, postupy a technickou dokumentaci.", "Kod", "Documentation mode: napis jasnou dokumentaci."],
+      ["Spec mode", "Prevede napad do specifikace s pozadavky, stavovymi scenari a akceptaci.", "Produkt", "Spec mode: sepis produktovou specifikaci."],
+      ["Accessibility mode", "Kontroluje pristupnost, citelnost, kontrast a klavesnicove ovladani.", "Produkt", "Accessibility mode: zhodnot pristupnost a navrhni opravy."]
+    ];
+
+    const phrases = [
+      ["Kontext", "Pouzij: „Kontext: [co resim, proc to resim, pro koho to je].“"],
+      ["Cil", "Pouzij: „Cil odpovedi je [konkretni vysledek].“"],
+      ["Role", "Pouzij: „Chovej se jako [role: senior engineer, editor, investor, ucitel].“"],
+      ["Publikum", "Pouzij: „Pis pro [zacatecniky, vedeni firmy, klienta, vyvojare].“"],
+      ["Format", "Pouzij: „Vystup dej jako [tabulku, checklist, email, JSON, osnovu].“"],
+      ["Omezeni", "Pouzij: „Dodrz tato omezeni: [delka, ton, technologie, rozpocet].“"],
+      ["Kriteria uspechu", "Pouzij: „Dobra odpoved splni: [1], [2], [3].“"],
+      ["Nejistoty", "Pouzij: „Kdyz si nejsi jisty, rekni to a vysvetli proc.“"],
+      ["Otazky pred odpovedi", "Pouzij: „Pokud chybi dulezite informace, zeptej se maximalne na 3 otazky.“"],
+      ["Bez halucinaci", "Pouzij: „Nevymyslej si fakta, cisla ani zdroje.“"],
+      ["Predpoklady", "Pouzij: „Nejdriv vypis predpoklady, ze kterych vychazis.“"],
+      ["Varianty", "Pouzij: „Nabidni 3 varianty: bezpecnou, vyvazenou a odvaznou.“"],
+      ["Trade-offy", "Pouzij: „U kazde moznosti uved trade-offy.“"],
+      ["Dalsi kroky", "Pouzij: „Na konci pridej konkretni dalsi kroky.“"],
+      ["Priorita", "Pouzij: „Serad doporuceni podle dopadu a narocnosti.“"],
+      ["Ton", "Pouzij: „Ton: [profesionalni, pratelsky, primy, premium, klidny].“"],
+      ["Delka", "Pouzij: „Odpoved omez na [pocet slov/odrazek/odstavcu].“"],
+      ["Priklady", "Pouzij: „Pridej 2 konkretni priklady a 1 protipriklad.“"],
+      ["Korekce", "Pouzij: „Oprav chyby a vysvetli jen ty dulezite.“"],
+      ["Cilova uroven", "Pouzij: „Predpokladej uroven znalosti: [zacatecnik/pokrocily/expert].“"],
+      ["Zakazane veci", "Pouzij: „Nepouzivej [zargon, emoji, dlouhe uvody, obecne rady].“"],
+      ["Porovnani", "Pouzij: „Porovnej podle kriterii: [cena, rychlost, riziko, kvalita].“"],
+      ["Zdroj pravdy", "Pouzij: „Vychazej pouze z informaci, ktere davam nize.“"],
+      ["Shrnuti", "Pouzij: „Na zacatek dej jednovete shrnuti.“"],
+      ["Rozhodnuti", "Pouzij: „Na konci jasne rekni: doporucuji / nedoporucuji.“"],
+      ["Rizika", "Pouzij: „Vypis top 5 rizik a jak je snizit.“"],
+      ["Edge cases", "Pouzij: „Mysli i na edge cases a vyjimky.“"],
+      ["Akcnost", "Pouzij: „Kazdy bod formuluj jako konkretni akci.“"],
+      ["Metriky", "Pouzij: „Navrhni metriky, podle kterych poznam uspech.“"],
+      ["Kontrola", "Pouzij: „Zkontroluj svou odpoved proti zadani pred odeslanim.“"],
+      ["Iterace", "Pouzij: „Dej nejdriv hruby navrh, pak navrhni jak ho zlepsit.“"],
+      ["Minimalismus", "Pouzij: „Navrhni nejjednodussi funkcni reseni.“"],
+      ["Ambice", "Pouzij: „Navrhni i jednu odvaznou variantu.“"],
+      ["Prakticnost", "Pouzij: „Vyhně se teorii, dej prakticky pouzitelny vystup.“"],
+      ["Citlivost", "Pouzij: „Upozorni na casti, kde muze zalezet na kontextu.“"],
+      ["Kontrolni seznam", "Pouzij: „Na konec pridej checklist pred pouzitim.“"]
+    ];
+
+    const templates = [
+      ["Univerzalni zadani", "Mode: [vybrane mody]\nKontext: [situace]\nCil: [co chci ziskat]\nPublikum: [pro koho to je]\nOmezeni: [delka, ton, format]\nVystup: [tabulka/checklist/email/kroky]\nKdyz chybi informace, zeptej se nejdriv na max. 3 otazky."],
+      ["Rychla rada", "Truth mode + Short mode:\nMam problem: [popis].\nDej mi nejpravdepodobnejsi reseni, hlavni riziko a dalsi krok."],
+      ["Rozhodnuti mezi variantami", "Decision mode + Compare mode:\nRozhoduji se mezi [A], [B], [C].\nKriteria: [cena, cas, riziko, kvalita].\nDej tabulku, doporuceni a kdy by volba neplatila."],
+      ["Kritika napadu", "Critic mode + Devil's advocate mode:\nNapad: [popis].\nNajdi slabiny, predpoklady, rizika, protiargumenty a konkretni vylepseni."],
+      ["Vylepseni textu", "Rewrite mode + Clarity mode:\nPrepis nasledujici text pro [publikum].\nTon: [ton].\nZachovej vyznam, zkrat zbytecnosti a pridej silnejsi strukturu.\nText: [vloz text]"],
+      ["Uceni tematu", "Teacher mode + Beginner mode + Examples mode:\nNauc me [tema].\nZacni jednoduse, pak pridej priklady, caste chyby a 5 kontrolnich otazek."],
+      ["Kod review", "Code review mode + Senior engineer mode:\nZkontroluj tento kod.\nHledej bugy, bezpecnost, edge cases, citelnost a chybejici testy.\nKod: [vloz kod]"],
+      ["Debugging", "Debug mode:\nProblem: [co se deje]\nOcekavane chovani: [co se melo stat]\nAktualni chovani: [co se stalo]\nLogy/kod: [vloz]\nNavrhni hypotezy od nejpravdepodobnejsi."],
+      ["Byznys strategie", "Strategy mode + Business mode:\nCil: [cil]\nSituace: [kontext]\nOmezeni: [rozpocet, tym, trh]\nNavrhni strategii, priority, metriky, rizika a dalsi kroky."],
+      ["Marketing kampan", "Marketing mode + Brand mode:\nProdukt: [produkt]\nCilovka: [cilovka]\nCil kampane: [cil]\nNavrhni positioning, hlavni sdeleni, kanaly, hooky a CTA."],
+      ["Email", "Email mode + Tone mode:\nNapis email pro [prijemce].\nCil: [co ma prijemce udelat]\nTon: [formalni/pratelsky/primy]\nDelka: max [pocet] slov.\nKontekst: [detaily]"],
+      ["Prompt na zlepseni promptu", "Prompt engineer mode:\nZlepsi muj prompt nize.\nCil: presnejsi, mene obecna odpoved.\nNejdriv napis vylepsenou verzi, pak kratce vysvetli zmeny.\nMuj prompt: [vloz prompt]"]
+    ];
+
+    const categories = ["Vse", ...Array.from(new Set(modes.map(mode => mode[2])))];
+    const modeGrid = document.getElementById("modeGrid");
+    const filters = document.getElementById("filters");
+    const searchInput = document.getElementById("searchInput");
+    let activeCategory = "Vse";
+
+    document.getElementById("modeCount").textContent = modes.length;
+
+    function normalize(value) {
+      return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function copyText(text, button) {
+      navigator.clipboard.writeText(text).then(() => {
+        button.textContent = "Zkopirovano";
+        button.classList.add("copied");
+        setTimeout(() => {
+          button.textContent = "Kopirovat mod";
+          button.classList.remove("copied");
+        }, 1400);
+      });
+    }
+
+    function renderFilters() {
+      filters.innerHTML = categories.map(category => (
+        `<button class="chip ${category === activeCategory ? "active" : ""}" data-category="${category}">${category}</button>`
+      )).join("");
+
+      filters.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => {
+          activeCategory = button.dataset.category;
+          renderFilters();
+          renderModes();
+        });
+      });
+    }
+
+    function renderModes() {
+      const query = normalize(searchInput.value.trim());
+      const filtered = modes.filter(([name, description, category, prompt]) => {
+        const matchesCategory = activeCategory === "Vse" || category === activeCategory;
+        const text = normalize(`${name} ${description} ${category} ${prompt}`);
+        return matchesCategory && (!query || text.includes(query));
+      });
+
+      modeGrid.innerHTML = filtered.map(([name, description, category, prompt]) => `
+        <article class="card">
+          <div class="card-top">
+            <h3 class="mode-name">${name}</h3>
+            <span class="badge">${category}</span>
+          </div>
+          <p class="description">${description}</p>
+          <div class="prompt">${prompt}</div>
+          <button class="copy" data-prompt="${encodeURIComponent(prompt)}">Kopirovat mod</button>
+        </article>
+      `).join("");
+
+      if (!filtered.length) {
+        modeGrid.innerHTML = `<p class="panel">Nic nenalezeno. Zkus jiny vyraz nebo kategorii.</p>`;
+      }
+
+      modeGrid.querySelectorAll(".copy").forEach(button => {
+        button.addEventListener("click", () => copyText(decodeURIComponent(button.dataset.prompt), button));
+      });
+    }
+
+    function renderPhrases() {
+      document.getElementById("phraseList").innerHTML = phrases.map(([title, text]) => `
+        <article class="phrase">
+          <strong>${title}</strong>
+          <span>${text}</span>
+        </article>
+      `).join("");
+    }
+
+    function renderTemplates() {
+      document.getElementById("templateList").innerHTML = templates.map(([title, text]) => `
+        <article class="template">
+          <strong>${title}</strong>
+          <code>${text}</code>
+        </article>
+      `).join("");
+    }
+
+    searchInput.addEventListener("input", renderModes);
+    renderFilters();
+    renderModes();
+    renderPhrases();
+    renderTemplates();
+  </script>
+</body>
+</html>
