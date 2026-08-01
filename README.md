@@ -30,6 +30,7 @@ python -m http.server 8000
 ```
 
 Hlavni stranka je `index.html`. Stejny obsah je dostupny i pres `prompt-modes.html`.
+PDF export je ulozeny jako `ai-mody-a-lepsi-zadani.pdf` a hlavni stranka na nej obsahuje odkaz ke stazeni.
 
 ## Tech stack
 

@@ -1,5 +1,5 @@
 const CACHE = 'prompt-modes-v1';
-const ASSETS = ['/', '/index.html', '/prompt-modes.html', '/manifest.json'];
+const ASSETS = ['/', '/index.html', '/prompt-modes.html', '/ai-mody-a-lepsi-zadani.pdf', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => 
+    caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     )
   );
