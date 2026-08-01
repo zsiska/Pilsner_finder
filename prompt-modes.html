@@ -520,9 +520,9 @@
 
     <div class="stats" aria-label="Rychly prehled">
       <div class="stat"><strong id="modeCount">0</strong><span>modu k pouziti</span></div>
-      <div class="stat"><strong>9</strong><span>kategorií podle situace</span></div>
-      <div class="stat"><strong>36</strong><span>frázi pro presnejsi prompt</span></div>
-      <div class="stat"><strong>12</strong><span>hotovych sablon zadani</span></div>
+      <div class="stat"><strong id="categoryCount">0</strong><span>kategorií podle situace</span></div>
+      <div class="stat"><strong id="phraseCount">0</strong><span>frázi pro presnejsi prompt</span></div>
+      <div class="stat"><strong id="templateCount">0</strong><span>hotovych sablon zadani</span></div>
     </div>
 
     <section class="section">
@@ -785,20 +785,46 @@ Navrhni strategii pro [cil], priority, metriky, rizika a dalsi kroky.</code>
     let activeCategory = "Vse";
 
     document.getElementById("modeCount").textContent = modes.length;
+    document.getElementById("categoryCount").textContent = categories.length - 1;
+    document.getElementById("phraseCount").textContent = phrases.length;
+    document.getElementById("templateCount").textContent = templates.length;
 
     function normalize(value) {
       return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
+    function markCopied(button) {
+      button.textContent = "Zkopirovano";
+      button.classList.add("copied");
+      setTimeout(() => {
+        button.textContent = "Kopirovat mod";
+        button.classList.remove("copied");
+      }, 1400);
+    }
+
+    function fallbackCopy(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      document.body.removeChild(area);
+    }
+
     function copyText(text, button) {
-      navigator.clipboard.writeText(text).then(() => {
-        button.textContent = "Zkopirovano";
-        button.classList.add("copied");
-        setTimeout(() => {
-          button.textContent = "Kopirovat mod";
-          button.classList.remove("copied");
-        }, 1400);
-      });
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => markCopied(button)).catch(() => {
+          fallbackCopy(text);
+          markCopied(button);
+        });
+        return;
+      }
+
+      fallbackCopy(text);
+      markCopied(button);
     }
 
     function renderFilters() {
